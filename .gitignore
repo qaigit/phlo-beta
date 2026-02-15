@@ -5,6 +5,8 @@
 **/data/creds.ini
 .env
 .env.*
+whatsapp/wa*.json
+whatsapp/wa*.data.json
 
 # Local symlink/tooling
 skills

@@ -1,0 +1,49 @@
+<style ns=trans.drop>
+html.drop {
+	main: view-transition-name: main
+	\::view-transition-old(main): animation: 250ms ease drop-out both
+	\::view-transition-new(main): animation: 250ms ease drop-in both
+	\.back::view-transition-old(main): animation: 250ms ease drop-out-reverse both
+	\.back::view-transition-new(main): animation: 250ms ease drop-in-reverse both
+}
+@keyframes drop-out {
+	0% {
+		opacity: 1
+		transform: translateY(0)
+	}
+	100% {
+		opacity: 0
+		transform: translateY(50px)
+	}
+}
+@keyframes drop-in {
+	0% {
+		opacity: 0
+		transform: translateY(-50px)
+	}
+	100% {
+		opacity: 1
+		transform: translateY(0)
+	}
+}
+@keyframes drop-out-reverse {
+	0% {
+		opacity: 1
+		transform: translateY(0)
+	}
+	100% {
+		opacity: 0
+		transform: translateY(-50px)
+	}
+}
+@keyframes drop-in-reverse {
+	0% {
+		opacity: 0
+		transform: translateY(50px)
+	}
+	100% {
+		opacity: 1
+		transform: translateY(0)
+	}
+}
+</style>

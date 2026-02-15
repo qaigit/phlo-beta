@@ -1,0 +1,13 @@
+<style ns=theme.crystalshadow>
+:root {
+	$background: linear-gradient(to bottom, #09090f, #0f1423, #121a33)
+	$surface: #0c1222
+	$primary: #7dd3fc
+	$text: #e8f6ff
+	$link: #bae6fd
+	$row-even: #141c31
+	$row-odd: #0a0e19
+	$row-hover: #7dd3fc29
+	$warning: #f43f5e
+}
+</style>

@@ -1,0 +1,35 @@
+route both GET settings $model= => (%app->active = 'settings') && main($this.lf.CMS($model ?? key(%app->menu), 'list'), 'Settings')
+
+route async PUT set theme @theme => apply(...array_filter(arr(
+	remove: 'link[href^="/theme."]',
+	css: (%session->theme = strtolower(%payload->theme)) ? '/theme.'.%session->theme.'.css' : null,
+	trans: %app->trans ?? true,
+)))
+
+route async PUT set trans @trans => apply(...array_filter(arr(
+	remove: 'link[href^="/trans."]',
+	css: (%session->trans = strtolower(%payload->trans)) ? '/trans.'.%session->trans.'.css' : null,
+	trans: %app->trans ?? true,
+)))
+
+view themeSelect => tag('select', id: 'theme', class: 'full', autofocus: true, inner: '<option value="">-standaard-'.loop(files(www, 'theme.*.css'), fn($file) => tag('option'.(%app->theme === ($name = substr(basename($file, '.css'), 6)) ? ' selected' : void)).ucfirst($name), void))
+view transSelect => tag('select', id: 'trans', class: 'full', inner: '<option value="">-standaard-'.loop(files(www, 'trans.*.css'), fn($file) => tag('option'.(%app->trans === ($name = substr(basename($file, '.css'), 6)) ? ' selected' : void)).ucfirst($name), void))
+
+view:
+<section#settings>
+	<div>Thema: $this->themeSelect</div>
+	<div>Animatie: $this->transSelect</div>
+</section>
+
+<style>
+#settings {
+	display: flex
+	flex-wrap: wrap
+	gap: .5rem
+	div {
+		border: 1px solid $primary
+		flex: 1
+		padding: .25rem
+	}
+}
+</style>

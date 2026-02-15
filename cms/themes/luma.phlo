@@ -1,0 +1,13 @@
+<style ns=theme.luma>
+:root {
+	$background: #ffffdd
+	$surface: #fff89a
+	$primary: #ffcc00
+	$text: #212121
+	$link: #ffaa00
+	$row-even: #fffed0
+	$row-odd: #ffffe5
+	$row-hover: #ffcc0029
+	$warning: #c62828
+}
+</style>

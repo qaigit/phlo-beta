@@ -1,0 +1,37 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: Single Page App basic CSS boilerplate
+
+<style>
+.left: text-align: left
+.center: text-align: center
+.right: text-align: right
+
+.float-left: float: left
+.float-right: float: right
+
+.absolute: position: absolute
+.fixed: position: fixed
+.relative: position: relative
+.sticky: position: sticky
+
+.padded: padding: 1rem
+.margin: margin: 1rem
+.margin-auto: margin: auto
+
+.overflow: overflow: auto
+.overflow-x: overflow-x: auto
+.overflow-y: overflow-y: auto
+.hide-x: overflow-x: hidden
+.hide-y: overflow-y: hidden
+
+.block: display: block
+.hidden: display: none
+
+.pointer: cursor: pointer
+.underline: text-decoration: underline
+
+.fit: width: fit-content
+.full: width: 100%
+.wide: max-width: 1200px
+</style>

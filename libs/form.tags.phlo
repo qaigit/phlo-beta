@@ -1,0 +1,8 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: DOM form tags for button, input, select, textarea
+
+function button(...$args):string => tag('button', ...$args)
+function input(...$args):string => tag('input', ...$args)
+function select(...$args):string => tag('select', ...$args)
+function textarea(...$args):string => tag('textarea', ...$args)

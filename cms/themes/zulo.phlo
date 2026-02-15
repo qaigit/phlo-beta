@@ -1,0 +1,13 @@
+<style ns=theme.zulo>
+:root {
+	$background: #0d1b1e
+	$surface: #133c4e
+	$primary: #08fdd8
+	$text: #d2fef7
+	$link: #00e6cb
+	$row-even: #102b30
+	$row-odd: #081617
+	$row-hover: #08fdd829
+	$warning: #ff1744
+}
+</style>

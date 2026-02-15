@@ -1,0 +1,12 @@
+{
+  "name": "phloWA",
+  "version": ".9.9.1",
+  "description": "Phlo WhatsApp server",
+  "main": "phloWA.js",
+  "keywords": [],
+  "author": "q-ai.nl",
+  "license": "ISC",
+  "dependencies": {
+    "@open-wa/wa-automate": "^4.76.0"
+  }
+}

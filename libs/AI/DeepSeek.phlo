@@ -1,0 +1,67 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: Basic DeepSeek functions
+
+@ requires:    creds:DeepSeek
+
+static context(...$args){
+	$args['messages'] ??= []
+	if (isset($args['system']) && array_unshift($args['messages'], arr(role: 'system', content: $args['system']))) unset($args['system'])
+	if (isset($args['assistant']) && array_push($args['messages'], arr(role: 'assistant', content: $args['assistant']))) unset($args['assistant'])
+	if (isset($args['user']) && array_push($args['messages'], arr(role: 'user', content: $args['user']))) unset($args['user'])
+	return $args
+}
+
+method chat(...$args){
+	$args = static::context(...$args)
+	$res = $this->request('chat/completions', POST: $args)
+dx($res)
+	$return = obj(model: $res->model, finish: $res->choices[0]->finish_reason, tokens: $res->usage->total_tokens, tokens_in: $res->usage->prompt_tokens, tokens_out: $res->usage->completion_tokens)
+	if (isset($res->choices[0]->message->tool_calls)) $return->tools = loop($res->choices[0]->message->tool_calls, fn($tool) => obj(name: $tool->function->name, args: json_decode($tool->function->arguments, true)))
+	else $return->answer = $res->choices[0]->message->content
+	return $return
+}
+
+method stream(...$args){
+	%app->streaming = true
+	$args = static::context(...$args)
+	$args['stream'] = true
+	if (isset($args['cb'])){
+		$cb = $args['cb']
+		unset($args['cb'])
+	}
+	else {
+		cli || header('Content-Type: text/event-stream')
+		$cb = fn($data) => last(($text = $data->choices[0]->delta->content ?? void) === void || [print($text), cli || [ob_flush(), flush()]], $text)
+	}
+	$answer = void
+	$buffer = void
+	$curl = curl_init('https://api.deepseek.com/v1/chat/completions')
+	curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST')
+	curl_setopt($curl, CURLOPT_POSTFIELDS, $data = json_encode($args))
+	curl_setopt($curl, CURLOPT_HTTPHEADER, ['Authorization: Bearer '.%creds->DeepSeek, 'Content-Type: application/json', 'Content-Length: '.strlen($data)])
+	curl_setopt($curl, CURLOPT_WRITEFUNCTION, function($curl, $data) use ($cb, &$buffer, &$answer){
+		$chunks = trim($buffer.$data)
+		$buffer = void
+		foreach (explode(lf.lf, $chunks) AS $chunk){
+			if (!str_starts_with($chunk, 'data: ')){
+				$buffer = $chunk
+				continue
+			}
+			if ($obj = json_decode(substr($chunk, 6))){
+				$res = $cb($obj)
+				if (is_string($res)) $answer .= $res
+			}
+			else $buffer = $chunk
+		}
+		return strlen($data)
+	})
+	curl_exec($curl)
+	return $answer
+}
+
+method request($uri, $JSON = true, ...$args){
+	$res = json_decode(HTTP("https://api.deepseek.com/v1/$uri", ['Authorization: Bearer '.%creds->DeepSeek], $JSON, ...$args))
+	if (isset($res->error)) error('DeepSeek Request error: '.$res->error->message)
+	return $res
+}

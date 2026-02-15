@@ -1,0 +1,25 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: Phlo simple AI answering machine
+
+function answer($question, ...$options){
+	$prompt = 'You are an AI answer machine. '
+	$prompt .= 'You give short, direct answers without repeating the subject. '
+	$prompt .= 'You add no explanation, no extra text, and no quotation marks. '
+	$prompt .= 'Always answer in the same language as the question.'.lf
+	if ($options){
+		$prompt .= 'The user asks a question. You choose exactly one of the options below as the answer. '
+		$prompt .= 'Your answer matches exactly one of the options, with no extra words or punctuation. '
+		$prompt .= 'If none of the options apply, answer with "-".'.lf.lf
+		$prompt .= 'Question:'.lf.$question.lf.lf
+		$prompt .= 'Options:'.lf
+		$prompt .= implode(lf, $options)
+	}
+	else {
+		$prompt .= 'Give a short and precise answer to the question. '
+		$prompt .= 'No introduction, no explanation, no list, and no final period.'.lf.lf
+		$prompt .= 'Question:'.lf.$question
+	}
+	$answer = %OpenAI->chat(user: $prompt, temperature: .1)->answer
+	return $answer === dash ? null : $answer
+}

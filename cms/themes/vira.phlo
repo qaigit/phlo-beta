@@ -1,0 +1,13 @@
+<style ns=theme.vira>
+:root {
+	$background: #fff1ff
+	$surface: #ffc2f2
+	$primary: #ff6ec7
+	$text: #880e4f
+	$link: #e91e63
+	$row-even: #ffd1ea
+	$row-odd: #fff0f7
+	$row-hover: #ff6ec729
+	$warning: #d50000
+}
+</style>

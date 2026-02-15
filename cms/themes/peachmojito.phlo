@@ -1,0 +1,13 @@
+<style ns=theme.peachmojito>
+:root {
+	$background: linear-gradient(to bottom, #FFE3B3, #FFB996, #AED9E0)
+	$surface: #FFF7ED
+	$primary: #FFB996
+	$text: #4A2D0D
+	$link: #4A2D0D
+	$row-even: #FFEEDD
+	$row-odd: #FFE6D1
+	$row-hover: #FFB99629
+	$warning: #D62828
+}
+</style>

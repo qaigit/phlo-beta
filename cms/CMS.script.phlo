@@ -1,0 +1,20 @@
+<script>
+let CMSbase = ''
+const listing = (key, value, el = null) => {
+	el = el || obj('section')
+	let opts = location.pathname.split('/').slice(2).filter(Boolean).reduce((o, p) => {
+		const [k, v] = p.split('=')
+		o[k] = v
+		return o
+	}, {})
+	if (value == null || value === '') delete opts[key]
+	else opts[key] = value
+	if (key !== 'p') delete opts.p
+	app.get(CMSbase + el.dataset.list + Object.entries(opts).reduce((s, [k, v]) => s + '/' + k + '=' + v, ''))
+}
+
+onExist('section header', () => [offset = 0, objects('section header').forEach((header) => [header.style.top = `${offset}px`, offset += header.offsetHeight - 1])])
+onVisible('#more', btn => listing('p', ((parseInt(btn.closest('section').dataset.page || '0', 10) || 0) + 1), btn.closest('section')))
+
+on('change', 'section.list .body input, section.record .body input, section.list .body select, section.record .body select', field => app.patch(`${CMSbase}api/${field.closest('[data-model]').dataset.model}/${field.closest('[data-id]').dataset.id}/${field.name}`, {[field.name]: field.value}))
+</script>

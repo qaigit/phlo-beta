@@ -1,0 +1,13 @@
+<style ns=theme.nightpastelwave>
+:root {
+	$background: #0f0f17
+	$surface: #181824
+	$primary: #bed7ff
+	$text: #eaf1ff
+	$link: #d0e2ff
+	$row-even: #212131
+	$row-odd: #10101a
+	$row-hover: #bed7ff29
+	$warning: #ff517a
+}
+</style>

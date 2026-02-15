@@ -1,0 +1,13 @@
+<style ns=theme.mizu>
+:root {
+	$background: #e0f7ff
+	$surface: #b3ecff
+	$primary: #00bfff
+	$text: #002b36
+	$link: #007fff
+	$row-even: #d0f2ff
+	$row-odd: #f0fbff
+	$row-hover: #00bfff29
+	$warning: #ff1744
+}
+</style>

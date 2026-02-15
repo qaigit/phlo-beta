@@ -1,0 +1,13 @@
+<style ns=theme.iridescence>
+:root {
+	$background: linear-gradient(135deg, #0a0018, #001a33, #00524b, #73005c)
+	$surface: #0d0d17
+	$primary: #00ffe5
+	$text: #eafffb
+	$link: #7ffff2
+	$row-even: #171726
+	$row-odd: #080810
+	$row-hover: #00ffe529
+	$warning: #ff4c7e
+}
+</style>

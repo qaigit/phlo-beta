@@ -1,0 +1,119 @@
+# PHLO — STRICT CODE-GEN RULES
+
+## 0) Separation (critical)
+
+* **Backend** is written **only** in `.phlo`. It transpiles to PHP/HTML/CSS.
+* **Frontend JS** exists **only inside** `<script>` blocks within a `view`.
+* **Never** mix JavaScript into non-`<script>` Phlo code.
+* If client logic is required, use the **existing frontend APIs** (see §5). Do **not** re-implement XHR/fetch/history/DOM.
+
+## 1) Files & Elements
+
+* Write **only `.phlo`** files. Transpiler outputs PHP to **`/php`** and assets to **`/www`**.
+* **No semicolons** anywhere in Phlo or `<style>`.
+* Valid elements: `route` `function` `const` `static` `method` `prop` `readonly` `view` `<script>` `<style>`
+* Single-line arrow **must have spaces**: `method now => time()` (not `now=>time()`).
+* `prop` runs once and caches.
+* `function` becomes a **global PHP** function.
+* Routes and assets are collected; all other elements become class methods.
+* **Do not combine** element syntaxes.
+
+## 2) Routing (space-separated paths, variables, defaults)
+
+```
+route [async|both|-] VERB pathPattern => target
+```
+
+* Path segments are separated by **spaces (not slashes)**.
+* Variables:
+
+  * `$var` → required segment
+  * `$var?` → optional entire segment
+  * `$var.2` → segment length exactly 2
+  * `$var:a,b` → segment must equal `a` or `b`
+  * `$var=*` → slurp the rest of the path
+  * `$var=default` → default used when missing
+* Body keys: `@a,b` ⇒ request body **must contain exactly** these keys.
+* Modifiers:
+
+  * `async` = matches async requests only
+  * `both` = matches sync **and** async
+  * omit = **sync only**
+* Examples:
+
+```
+route both GET admin $page:list,record => main($this->$page, 'List')
+route async POST admin add @name,explanation { … }
+route GET items $kind:active,archived $page=1 => list($kind, $page)
+```
+
+## 3) Views & Templating
+
+* `view Name(optionalArgs):` then HTML.
+* Abbrev: `<div#id.a.b/>` → `<div id="id" class="a b"></div>`
+* Logic tags:
+
+  ```
+  <if $x === 1> … <elseif $x === 2> … </if>
+  <foreach range(1,5) as $n> … </foreach>
+  ```
+* Inline eval: `{{ expr }}` or `{( expr )}` — **wrap complex logic** (`{( … )}`) for safety.
+
+## 4) `<style>` (Phlo CSS)
+
+* Always multiline; **newline ends property**; **no semicolons**.
+* `:` + space starts a property; `:` **without** space is literal (e.g., `min-width:768px`).
+* Nesting allowed; variables as `$var:`.
+* Pseudo escape: `:hover:` glues to parent selector.
+
+## 5) Frontend (what you may write/reference in `<script>`)
+
+* Requests (handled by engine; returns streamed NDJSON):
+
+  * `app.get(uri)`, `app.post(uri,data)`, `app.put(uri,data)`, `app.patch(uri,data)`, `app.delete(uri)`
+  * Plain object ⇒ JSON (`Content-Type: application/json`)
+  * `FormData` ⇒ sent as multipart as-is
+* **Never** wrap `app.get/post/...` calls in `.then`, `await`, or treat them as fetch promises.
+  They don’t return data — they trigger Phlo’s engine, which applies results via `apply()`.
+  Just call them directly, e.g.:
+
+  ```html
+  <script>
+  app.get('test/info')
+  </script>
+  ```
+* Events: `on(evts, els, cb)` (or `phlo.event(...)` / `phlo.events` queue).
+* State helpers: `app.options` (body classes), `app.settings` (body dataset), `app.uri`, `app.mode`, `app.state`.
+* **Do not** manage history manually; the backend responses drive it.
+
+## 6) Backend → Frontend “apply” Commands (names you may emit/reference)
+
+Use only these keys when emitting UI changes (or when describing expected outcomes):
+`location` `lang` `title` `options` `settings` `remove` `css` `js` `defer` `main` `outer` `inner` `before` `prepend` `append` `after` `attr` `value` `data` `class` `call` `log` `error`
+Optional: `uri`, `uriReplace`, `trans`, `state`.
+
+## 7) Object Model & Libraries (write code to these idioms)
+
+* Use `%Name` libraries/objects (no `new`): `%cookies`, `%payload`, `%JSON('file')`, `%INI('conf')`, `%MySQL`, `%OpenAI`, …
+* **No `%GET` object**; use `%payload` for request data.
+* ORM (`model.phlo`): subclass defines `static table`, `columns/fields`. Prefer **named args**:
+
+  ```
+  Variant::create(product:1, sku:'1234')
+  Explanation::change('id=?', 7, explanation:'…')
+  ```
+* Computed properties (mirrors engine behavior):
+
+  * Instance: implement protected `_$name(...)`; access as `$this->name(...)` (cached per arg list).
+  * Static: implement protected `static _name(...)`; access as `Class::name(...)` (cached per class & args).
+
+## 8) Absolutes (must/never)
+
+* **Must** keep arrow spacing `=>` in single-line elements.
+* **Must** wrap complex inline logic in `{( … )}`.
+* **Must not** output semicolons (including `<style>`).
+* **Must not** generate JS outside `<script>`.
+* **Must not** invent frontend commands beyond §6.
+* **Must not** misuse `async|both` or `@keys`.
+* **Must not** use slashes in route paths (use **spaces**).
+* Prefer `%Name` objects; avoid `new`.

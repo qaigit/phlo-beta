@@ -1,0 +1,275 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: Clientside markdown parser
+
+<script>
+function parse_markdown(md, opts = {}){
+  const o = {
+    gfm: opts.gfm !== false,
+    breaks: !!opts.breaks,
+    headerIds: opts.headerIds !== false,
+    headerPrefix: opts.headerPrefix || '',
+    smartypants: !!opts.smartypants
+  }
+  const unnull = x => (x == null ? '' : String(x))
+  let src = unnull(md).replace(/\r\n?/g, "\n")
+  const escHtml = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))
+  const trimEndNL = s => s.replace(/\s+$/,'')
+  const isBlank = s => /^\s*$/.test(s)
+  const slugmap = new Map()
+  const slug = (t) => {
+    let s = t.toLowerCase().replace(/<\/?[^>]+>/g, '').replace(/[^\p{L}\p{N}\- _]+/gu, '').trim().replace(/[\s_]+/g, '-')
+    const base = o.headerPrefix + s
+    let k = base, i = 1
+    while (slugmap.has(k)) k = `${base}-${++i}`
+    slugmap.set(k, true)
+    return k
+  }
+  const smart = s => {
+    if (!o.smartypants) return s
+    return s.replace(/---/g, "—").replace(/--/g, "–").replace(/(^|[\s"(\[])(?=')/g, "$1‘").replace(/'/g, "’").replace(/(^|[\s(\[])(?=")/g, "$1“").replace(/"/g, "”").replace(/\.{3}/g, "…")
+  }
+  const refs = Object.create(null)
+  src = src.replace(
+    /^ {0,3}\[([^\]]+)\]:\s*<?([^\s>]+)>?(?:\s+(?:"([^"]*)"|'([^']*)'|\(([^)]+)\)))?\s*$/gm,
+    (_, label, url, t1, t2, t3) => {
+      const key = label.trim().replace(/\s+/g, ' ').toLowerCase()
+      if (!refs[key]) refs[key] = { href: url, title: t1 || t2 || t3 || '' }
+      return ''
+    }
+  )
+  const tokens = []
+  const lines = src.split("\n")
+  function takeWhile(start, pred){
+    let end = start
+    while (end < lines.length && pred(lines[end], end)) end++
+    return { start, end }
+  }
+  function pushParagraph(buf){
+    const text = buf.join("\n").trimEnd()
+    if (text) tokens.push({ type: "paragraph", text })
+    buf.length = 0
+  }
+  function parseBlock(start = 0, end = lines.length){
+    const para = []
+    let l = start
+    while (l < end){
+      const line = lines[l]
+      if (isBlank(line)){ pushParagraph(para); l++; continue; }
+      let m = line.match(/^ {0,3}(`{3,}|~{3,})([^\n]*)$/)
+      if (m){
+        pushParagraph(para)
+        const fenceLen = m[1].length
+        const info = (m[2] || '').trim()
+        let body = []
+        l++
+        while (l < end){
+          const s = lines[l]
+          const close = s.match(new RegExp(`^ {0,3}${m[1][0]}{${fenceLen},}\\s*$`))
+          if (close){ l++; break; }
+          body.push(s)
+          l++
+        }
+        tokens.push({ type: "code", lang: info.split(/\s+/)[0] || '', text: trimEndNL(body.join("\n")) })
+        continue
+      }
+      if (/^(?: {4}|\t)/.test(line)){
+        pushParagraph(para)
+        const { end: j } = takeWhile(l, s => /^(?: {4}|\t)/.test(s) || isBlank(s))
+        const block = lines.slice(l, j).map(s => s.replace(/^(?: {4}|\t)/, '')).join("\n")
+        tokens.push({ type: "code", lang: '', text: trimEndNL(block) })
+        l = j; continue
+      }
+      if (/^ {0,3}<(?:!--|\/?(?:html|head|body|pre|script|style|table|thead|tbody|tfoot|tr|td|th|div|p|h[1-6]|blockquote|ul|ol|li|section|article|aside|details|summary|figure|figcaption)\b)/i.test(line)){
+        pushParagraph(para)
+        const { end: j } = takeWhile(l, (s, idx) => !(idx > l && isBlank(lines[idx-1]) && isBlank(s)))
+        const html = lines.slice(l, j).join("\n")
+        tokens.push({ type: "html", text: html })
+        l = j; continue
+      }
+      if (/^ {0,3}(?:-+\s*|-{3,}|_{3,}|\*{3,})\s*$/.test(line)){
+        pushParagraph(para)
+        tokens.push({ type: "hr" })
+        l++; continue
+      }
+      m = line.match(/^ {0,3}(#{1,6})[ \t]*([^#\n]*?)[ \t#]*$/)
+      if (m){
+        pushParagraph(para)
+        tokens.push({ type: "heading", depth: m[1].length, text: m[2].trim() })
+        l++; continue
+      }
+      if (l + 1 < end && /^[^\s].*$/.test(line) && /^ {0,3}(=+|-+)\s*$/.test(lines[l + 1])){
+        pushParagraph(para)
+        const depth = lines[l + 1].trim().startsWith("=") ? 1 : 2
+        tokens.push({ type: "heading", depth, text: line.trim() })
+        l += 2; continue
+      }
+      if (/^ {0,3}>\s?/.test(line)){
+        pushParagraph(para)
+        const { end: j } = takeWhile(l, s => /^ {0,3}>\s?/.test(s) || isBlank(s))
+        const inner = lines.slice(l, j).map(s => s.replace(/^ {0,3}>\s?/, '')).join("\n")
+        const sub = parse_markdown(inner, { ...o })
+        tokens.push({ type: "blockquote", html: sub })
+        l = j; continue
+      }
+      m = line.match(/^ {0,3}((?:[*+-])|\d{1,9}[.)])\s+/)
+      if (m){
+        pushParagraph(para)
+        const bulletRe = /^ {0,3}((?:[*+-])|\d{1,9}[.)])\s+/
+        const { end: j } = takeWhile(l, (s, idx) =>
+          bulletRe.test(s) ||
+          (/^(?: {4}|\t)/.test(s)) ||
+          (!isBlank(s) && idx > l && !/^(?: {0,3}(?:[*+-]|\d{1,9}[.)])\s+)/.test(s))
+        )
+        const block = lines.slice(l, j)
+        const ordered = /^\d/.test(m[1])
+        const items = []
+        let cur = []
+        for (let k = 0; k < block.length; k++){
+          const ln = block[k]
+          const head = ln.match(bulletRe)
+          if (head){
+            if (cur.length) items.push(cur), cur = []
+            cur.push(ln.replace(bulletRe, ''))
+          } else {
+            cur.push(ln.replace(/^(?: {4}|\t)/, ''))
+          }
+        }
+        if (cur.length) items.push(cur)
+        const parsedItems = items.map(linesArr => {
+          let raw = linesArr.join("\n").replace(/\n\s+$/,'')
+          let checked = null
+          if (o.gfm){
+            const t = raw.match(/^\[([ xX])\][ \t]+/)
+            if (t){ checked = t[1].toLowerCase() === 'x'; raw = raw.replace(/^\[[ xX]\][ \t]+/, ''); }
+          }
+          const html = parse_markdown(raw, o)
+          return { html, checked }
+        })
+        tokens.push({ type: "list", ordered, items: parsedItems })
+        l = j; continue
+      }
+      if (o.gfm){
+        const hdr = line
+        const alignLn = lines[l + 1] || ''
+        if (/\|/.test(hdr) && /^ {0,3}\|? *:?-+:? *(?:\| *:?-+:? *)*\|? *$/.test(alignLn)){
+          pushParagraph(para)
+          const aligns = alignLn
+            .trim().replace(/^(\|)|(\|)$/g,'')
+            .split("|").map(s => s.trim()).map(s => s.startsWith(":-") && s.endsWith("-:") ? "center" : s.endsWith("-:") ? "right" : s.startsWith(":-") ? "left" : null)
+          const headerCells = hdr.trim().replace(/^(\|)|(\|)$/g,'').split("|").map(s => s.trim())
+          l += 2
+          const rows = []
+          while (l < end && /\|/.test(lines[l]) && !isBlank(lines[l])){
+            rows.push(lines[l].trim().replace(/^(\|)|(\|)$/g,'').split("|").map(s => s.trim()))
+            l++
+          }
+          tokens.push({ type: "table", header: headerCells, aligns, rows })
+          continue
+        }
+      }
+      para.push(line)
+      const next = lines[l + 1] || ''
+      const endPara =
+        isBlank(next) ||
+        /^ {0,3}(?:`{3,}|~{3,})/.test(next) ||
+        /^(?: {4}|\t)/.test(next) ||
+        /^ {0,3}((?:[*+-])|\d{1,9}[.)])\s+/.test(next) ||
+        /^ {0,3}(#{1,6})/.test(next) ||
+        /^ {0,3}>\s?/.test(next) ||
+        /^ {0,3}(?:-+\s*|-{3,}|_{3,}|\*{3,})\s*$/.test(next) ||
+        (o.gfm && /\|/.test(next) && /^ {0,3}\|? *:?-+:? *(?:\| *:?-+:? *)*\|? *$/.test(lines[l + 2] || ''))
+      if (endPara) pushParagraph(para)
+      l++
+    }
+    pushParagraph(para)
+  }
+  parseBlock(0, lines.length)
+  function renderInline(s){
+    if (!s) return ''
+    s = s.replace(/(`+)([^`]|[^`][\s\S]*?[^`])\1/g, (_, ticks, code) => `<code>${escHtml(code)}</code>`)
+    s = s.replace(/!\[([^\]]*)\]\(\s*<?([^\s)<>]+)>?\s*(?:(?:"([^"]*)"|'([^']*)'|\(([^)]+)\)))?\s*\)/g,
+      (_, alt, url, t1, t2, t3) => `<img src="${escHtml(url)}" alt="${escHtml(alt)}"${t1||t2||t3?` title="${escHtml(t1||t2||t3)}"`:''}>`)
+    s = s.replace(/!\[([^\]]*)\]\[([^\]]*)\]/g, (_, alt, id) => {
+      const ref = refs[(id || alt).trim().replace(/\s+/g,' ').toLowerCase()]
+      return ref ? `<img src="${escHtml(ref.href)}" alt="${escHtml(alt)}"${ref.title?` title="${escHtml(ref.title)}"`:''}>` : _
+    })
+    s = s.replace(/\[([^\]]+)\]\(\s*<?([^\s)<>]+)>?\s*(?:(?:"([^"]*)"|'([^']*)'|\(([^)]+)\)))?\s*\)/g,
+      (_, text, url, t1, t2, t3) => `<a href="${escHtml(url)}"${t1||t2||t3?` title="${escHtml(t1||t2||t3)}"`:''}>${text}</a>`)
+    s = s.replace(/\[([^\]]+)\]\s*\[([^\]]*)\]/g, (_, text, id) => {
+      const key = (id || text).trim().replace(/\s+/g,' ').toLowerCase()
+      const ref = refs[key]
+      return ref ? `<a href="${escHtml(ref.href)}"${ref.title?` title="${escHtml(ref.title)}"`:''}>${text}</a>` : _
+    })
+    s = s.replace(/<([a-zA-Z][a-zA-Z0-9+.-]{1,31}:[^ <>"']+)>/g, (_, url) => `<a href="${escHtml(url)}">${escHtml(url)}</a>`)
+    s = s.replace(/<([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})>/g, (_, mail) => `<a href="mailto:${escHtml(mail)}">${escHtml(mail)}</a>`)
+    if (o.gfm){
+      s = s.replace(/(?:(?<=\s)|^)(https?:\/\/[^\s<]+)(?=\s|$)/g, '<a href="$1">$1</a>')
+      s = s.replace(/(?:(?<=\s)|^)(www\.[^\s<]+)(?=\s|$)/g, '<a href="http://$1">$1</a>')
+    }
+    s = s.replace(/\*\*([\s\S]+?)\*\*/g, '<strong>$1</strong>').replace(/__([\s\S]+?)__/g, '<strong>$1</strong>')
+    s = s.replace(/\*([^*\n]+?)\*/g, '<em>$1</em>').replace(/_([^_\n]+?)_/g, '<em>$1</em>')
+    if (o.gfm) s = s.replace(/~~([\s\S]+?)~~/g, '<del>$1</del>')
+    s = s.replace(/ {2,}\n/g, "<br>\n")
+    if (o.breaks) s = s.replace(/\n/g, "<br>\n")
+    s = s.replace(/&(?!#?\w+;)/g, "&amp;").replace(/<(?!\/?[A-Za-z][^>]*>)/g, "&lt;")
+    return smart(s)
+  }
+  let out = ''
+  for (const t of tokens){
+    switch (t.type){
+      case "paragraph":
+        out += `<p>${renderInline(t.text)}</p>\n`
+        break
+      case "heading": {
+        const text = renderInline(t.text)
+        const id = o.headerIds ? slug(text.replace(/<[^>]+>/g, '')) : null
+        out += id ? `<h${t.depth} id="${id}">${text}</h${t.depth}>\n` : `<h${t.depth}>${text}</h${t.depth}>\n`
+        break
+      }
+      case "code": {
+        const cls = t.lang ? ` class="language-${escHtml(t.lang)}"` : ''
+        out += `<pre><code${cls}>${escHtml(t.text)}</code></pre>\n`
+        break
+      }
+      case "blockquote":
+        out += `<blockquote>\n${t.html.trim()}\n</blockquote>\n`
+        break
+      case "list": {
+        const tag = t.ordered ? "ol" : "ul"
+        out += `<${tag}>\n`
+        for (const it of t.items){
+          const task = it.checked === null ? '' : `<input ${it.checked ? 'checked="" ' : ''}disabled="" type="checkbox"> `
+          const body = it.html.trim().replace(/^<p>/, task + "<p>")
+          out += `<li>${body}</li>\n`
+        }
+        out += `</${tag}>\n`
+        break
+      }
+      case "table": {
+        const ths = t.header.map((h, i) => {
+          const a = t.aligns[i]
+          return a ? `<th align="${a}">${renderInline(h)}</th>` : `<th>${renderInline(h)}</th>`
+        }).join("\n")
+        let body = ''
+        for (const row of t.rows){
+          const tds = row.map((cell, i) => {
+            const a = t.aligns[i]
+            return a ? `<td align="${a}">${renderInline(cell)}</td>` : `<td>${renderInline(cell)}</td>`
+          }).join("\n")
+          body += `<tr>\n${tds}\n</tr>\n`
+        }
+        out += `<table>\n<thead>\n<tr>\n${ths}\n</tr>\n</thead>\n` + (body ? `<tbody>\n${body}</tbody>\n` : '') + `</table>\n`
+        break
+      }
+      case "hr":
+        out += "<hr>\n"
+        break
+      case "html":
+        out += t.text + "\n"
+        break
+    }
+  }
+  return out.trim()
+}
+</script>

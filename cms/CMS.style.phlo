@@ -1,0 +1,90 @@
+<style>
+::-webkit-scrollbar {
+	background: $background
+	width: 12px
+	height: 20px
+	\-thumb: background: $primary
+}
+a: color: $link
+h1, h2 {
+	font-size: 1.2em
+	font-weight: normal
+	margin: 0
+}
+input.field, select, textarea {
+	background: transparent
+	border: 0
+	font: inherit
+	color: $text
+	\.error: outline: 1px solid $warning
+}
+section .body input.field, section .body select, section .body textarea, input.field.full, select.full, textarea.full: width: 100%
+input::placeholder {
+	color: $text
+	opacity: .66
+}
+select option {
+	background: black
+	color: white
+}
+button, .btn {
+	background: $surface
+	border-radius: 6px
+	color: $text
+	cursor: pointer
+	display: inline-block
+	border: 0
+	font: inherit
+	font-size: .9em
+	outline: 0
+	text-align: center
+	text-decoration: none
+	\.primary: background: $primary
+	\.warning: background: $warning
+}
+section header {
+	background: $background
+	display: flex
+	flex-wrap: wrap
+	gap: .5rem
+	justify-content: end
+	line-height: 30px
+	margin: 1.25em 0 0
+	padding: 0 .5rem
+	position: sticky
+	left: 0
+	z-index: 1
+	h1, h2: flex: auto
+	.count {
+		background: $warning
+		border-radius: 100%
+		display: inline-block
+		font-size: .8em
+		font-weight: bold
+		text-align: center
+		min-width: 2em
+	}
+	button, .btn {
+		height: 2em
+		margin-top: 5px
+	}
+}
+#more {
+	display: block
+	margin: auto
+}
+dialog {
+	animation: 200ms dialog
+	background: $background
+	border: 1px solid $link
+	border-radius: 6px
+	color: $text
+	\::backdrop {
+		backdrop-filter: blur(12px)
+		background-color: #ABC2
+		cursor: pointer
+	}
+	button: border: 1px solid $link
+}
+@keyframes dialog: from: transform: scale(.5)
+</style>

@@ -1,0 +1,57 @@
+<style ns=trans.curtain>
+html.curtain {
+	main: view-transition-name: main
+	\::view-transition-old(main): animation: 250ms ease-in curtain-out both
+	\::view-transition-new(main): animation: 250ms ease-in curtain-in both
+	\.back::view-transition-old(main): animation: 250ms ease-in curtain-out-reverse both
+	\.back::view-transition-new(main): animation: 250ms ease-in curtain-in-reverse both
+}
+@keyframes curtain-out {
+	0% {
+		opacity: 1
+		transform: scaleY(1)
+		transform-origin: top
+	}
+	100% {
+		opacity: 0
+		transform: scaleY(0)
+		transform-origin: top
+	}
+}
+@keyframes curtain-in {
+	0% {
+		opacity: 0
+		transform: scaleY(0)
+		transform-origin: bottom
+	}
+	100% {
+		opacity: 1
+		transform: scaleY(1)
+		transform-origin: bottom
+	}
+}
+@keyframes curtain-out-reverse {
+	0% {
+		opacity: 1
+		transform: scaleY(1)
+		transform-origin: bottom
+	}
+	100% {
+		opacity: 0
+		transform: scaleY(0)
+		transform-origin: bottom
+	}
+}
+@keyframes curtain-in-reverse {
+	0% {
+		opacity: 0
+		transform: scaleY(0)
+		transform-origin: top
+	}
+	100% {
+		opacity: 1
+		transform: scaleY(1)
+		transform-origin: top
+	}
+}
+</style>

@@ -1,0 +1,6 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: Simple encryption implementation
+
+function encrypt($data, $key):string => base64_encode(($nonce = random_bytes(SODIUM_CRYPTO_SECRETBOX_NONCEBYTES)).sodium_crypto_secretbox($data, $nonce, hash('sha256', $key, true)))
+function decrypt($encrypted, $key):string => ($d = base64_decode($encrypted, true)) !== false && strlen($d) >= SODIUM_CRYPTO_SECRETBOX_NONCEBYTES ? sodium_crypto_secretbox_open(substr($d, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES), substr($d, 0, SODIUM_CRYPTO_SECRETBOX_NONCEBYTES), hash('sha256', $key, true)) : false

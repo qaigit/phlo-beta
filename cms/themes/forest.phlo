@@ -1,0 +1,13 @@
+<style ns=theme.forest>
+:root {
+	$background: #e8f5e9
+	$surface: #c8e6c9
+	$primary: #388e3c
+	$text: #1b5e20
+	$link: #66bb6a
+	$row-even: #dcedc8
+	$row-odd: #f1f8e9
+	$row-hover: #66bb6a29
+	$warning: #c62828
+}
+</style>

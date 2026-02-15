@@ -1,0 +1,16 @@
+<style ns=trans.spotlight>
+::view-transition-group(root): background: black
+html.spotlight {
+	main: view-transition-name: main
+	\::view-transition-old(main): animation: 220ms ease spotlight-out both
+	\::view-transition-new(main): animation: 220ms ease 80ms spotlight-in both
+}
+@keyframes spotlight-out {
+	0%: clip-path: circle(75% at 50% 50%)
+	100%: clip-path: circle(0% at var(--spot-x,50%) var(--spot-y,50%))
+}
+@keyframes spotlight-in {
+	0%: clip-path: circle(0% at var(--spot-x,50%) var(--spot-y,50%))
+	100%: clip-path: circle(75% at 50% 50%)
+}
+</style>

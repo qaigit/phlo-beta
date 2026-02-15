@@ -1,0 +1,197 @@
+@ extends: CMS
+
+route both GET $list $options=* {
+	if (($options && !str_contains($options, eq)) || !$model = CMS::uriListFind($list)) return false
+	%app->active = $model
+	$CMS = CMS($model, 'list')
+	$options === 'debug' && dx($model, $CMS)
+	$options && static::listOptions($CMS, $options)
+	$options && async && ($CMS->page ? apply(...array_filter(arr(append: [$CMS->sectionSel.' table tbody' => $CMS->bodyRecords], outer: [$CMS->sectionSel.' #more' => $CMS->more], remove: (!$CMS->more) ? $CMS->sectionSel.' #more' : null, data: [$CMS->sectionSel => ['page' => $CMS->page]]))) : apply(...array_filter(arr(outer: [$CMS->sectionSel.' table' => $CMS->body, $CMS->sectionSel.' #more' => $CMS->more], remove: (!$CMS->more) ? $CMS->sectionSel.' #more' : null, data: [$CMS->sectionSel => ['page' => 0]], trans: true, uri: $CMS->parent ? null : req))))
+	main($CMS, $CMS->title)
+}
+
+static listOptions(CMS $CMS, string $req = null){
+	if ($CMS->parent) return
+	$opts = new obj
+	$pp = $CMS->model::$pp ?? $CMS->pp
+	$page = 0
+	if ($req){
+		$req = obj(...create(array_filter(explode(slash, $req)), fn($s) => substr($s, 0, strpos($s, eq)), fn($s) => substr($s, strpos($s, eq) + 1)))
+		if ($req->q){
+			$fields = $CMS->searchFields
+			$CMS->q = $req->q
+			$opts->where = loop($fields, fn($f, $c) => "$c LIKE ?", ' OR ')
+			foreach ($fields AS $c => $f) $opts->$c = perc.strtr($req->q, [space => perc]).perc
+		}
+		$filters = $CMS->filters
+		if ($req->f && ($filters[$req->f]['filter'] ?? null)) $opts->where = ($opts->where ? '('.$opts->where.') AND ' : void).$filters[$CMS->f = $req->f]['filter']
+		$sorts = $CMS->sorts
+		if ($req->o && ($sorts[$req->o]['order'] ?? null)) $opts->order = $sorts[$req->o]['order']
+		if (isset($req->p)) $page = max(0, intval($req->p))
+	}
+	($order = $CMS->model::$order ?? (current($CMS->sorts)['order'] ?? null)) && $opts->order ??= $order
+	$opts->limit = ($page * $pp).comma.$pp
+	$CMS->options = $opts
+	$CMS->page = $page
+	$CMS->pp = $pp
+}
+
+prop mode = 'list'
+prop pp => $this->model::$pp ?? 20
+prop title => $this->relationshipName ? $this->parent->model::fields()[$this->relationshipName]->title : $this->titleList
+prop options => new obj(limit: $this->pp)
+prop records => $this->model::records(...$this->options)
+prop fieldCount => count($this->fields)
+
+prop searchFields => $this->parent ? [] : array_filter($this->model::fields(), fn($f) => $f->search)
+prop filters => $this->parent ? [] : (method_exists($this->model, 'objFilters') || property_exists($this->model, 'objFilters') ? $this->model::objFilters() : [])
+prop sorts => $this->parent ? [] : (method_exists($this->model, 'objSorts') || property_exists($this->model, 'objSorts') ? $this->model::objSorts() : [])
+
+prop actions {
+	$actions = []
+	if (!$this->parent){
+		$this->searchFields && $actions[] = $this->searchField
+		$this->filters && $actions[] = $this->filterField
+		$this->sorts && $actions[] = $this->sortField
+	}
+	$this->model::canCreate() && $actions[] = tag('a', 'Nieuw', href: '/create/'.$this->uri(true), class: 'async btn primary')
+	return implode(lf, $actions)
+}
+
+view headerTitle: <span.count>{( $this->hasData('records') ? count($this->records) : $this->model::recordCount() )}</span> $this->DOMtitle
+
+view:
+<section $this->section>
+	{{ $this->header }}
+	{{ $this->body }}
+</section>
+
+view searchField: <div.search><input type=search id=search value="{{ esc($this->q ?? void) }}" placeholder="Zoek {{ strtolower($this->titleRecord) }}..."><i.icon.zoom/></div>
+view filterField: <select.filter id=filter><option value=""{( $this->f ? void : ' selected' )}>⚐ Filter:{{ loop($this->filters, fn($f, $key) => '<option value="'.$key.($this->f === $key ? '" selected>' : '">').'⚐ '.$f['title'], void) }}</select>
+view sortField: <select.sort id=sort><option value=""{( $this->o ? void : ' selected' )}>⚐ Sortering:{{ loop($this->sorts, fn($s, $key) => '<option value="'.$key.($this->o === $key ? '" selected>' : '">').'&#8645; '.$s['title'], void) }}</select>
+
+view header:
+<header>
+	<$this->titleTag>$this->headerTitle</$this->titleTag>
+	{{ $this->actions }}
+</header>
+
+view body:
+<table.body>
+	<thead>
+		<tr>
+			<foreach $this->fields AS $column => $field>
+				<th>$field->title</th>
+			</foreach>
+		</tr>
+	</thead>
+	<tbody>
+		{{ $this->bodyRecords }}
+	</tbody>
+</table>
+{( $this->parent ? void : $this->more )}
+
+view bodyRecords:
+<if $records = $this->records>
+	<foreach $this->records AS $id => $record>
+		<tr data-id=$id>
+			<foreach $this->fields AS $column => $field>
+				{{ $this->field($field, $record, 'td') }}
+			</foreach>
+		</tr>
+	</foreach>
+<else>
+	{{ $this->noRecords }}
+</if>
+
+view more: {( count($this->records) === $this->pp ? tag('button', id: 'more', inner: 'Meer laden') : void )}
+view noRecords: <tr><td.noRecords colspan="$this->fieldCount">Geen {{ strtolower($this->titleList) }}</td></tr>
+
+<script>
+on('input', '#search', search => delay('search', 400, () => listing('q', search.value.trim() ? search.value.trim() : null, search.closest('section'))))
+on('change', '#filter', filter => listing('f', filter.value || null, filter.closest('section')))
+on('change', '#sort', sort => listing('o', sort.value || null, sort.closest('section')))
+
+on('mousedown', 'section.list.default td.label.link', (cell, e) => {
+	if (e.button === 2) return
+	e.preventDefault()
+	const parent = (el = cell.closest('[data-parent]')) ? `${el.dataset.parent}/` : ''
+	const url = `${CMSbase}${parent}${cell.closest('[data-record]').dataset.record}/${cell.closest('[data-id]').dataset.id}`
+	if (e.shiftKey || e.ctrlKey || e.button === 1) window.open(url)
+	else app.get(url)
+})
+on('mouseover', 'section.list.default td', td => !!app.mod.class(td.closest('table').querySelectorAll(`td:nth-child(${Array.from(td.parentElement.children).indexOf(td) + 1})`), 'active'))
+on('mouseout', 'section.list.default td', td => !!app.mod.class(td.closest('table').querySelectorAll(`td:nth-child(${Array.from(td.parentElement.children).indexOf(td) + 1})`), '-active'))
+</script>
+
+<style>
+section.list.default {
+	display: contents
+	\.main table th: top: 30px
+	header {
+		display: flex
+		.search {
+			flex: 1 1 200px
+			min-width: 120px
+			position: relative
+			input {
+				width: 100%
+				padding: .55rem .75rem .55rem 2.25rem
+				border: none
+				border-radius: 9px
+				background: $surface-alt
+				color: $text
+				font-size: .85em
+			}    
+			i {
+				position: absolute
+				left: .75rem
+				top: 50%
+				transform: translateY(-50%)
+				pointer-events: none
+			}
+		}
+	}
+	table {
+		min-width: 100%
+		th {
+			background: $surface
+			font-size: .85em
+			font-weight: normal
+			line-height: 30px
+			margin-bottom: 3em
+			position: sticky
+			text-align: left
+			top: 60px
+		}
+		tbody tr {
+			\:nth-child(odd): background: $row-odd
+			\:nth-child(even): background: $row-even
+			\:hover td, td.active: background: $row-hover
+			td {
+				padding: .5rem
+				vertical-align: top
+				input.field, select, textarea {
+					border: 1px solid $text
+					border-radius: 3px
+					min-width: 100px
+					margin: -.25rem
+					padding: .25rem
+				}
+				> a.async {
+					display: block
+					max-width: 150px
+					overflow: hidden
+					text-overflow: ellipsis
+					white-space: nowrap
+				}
+				\.link: cursor: pointer
+				\.noRecords {
+					font-size: 1.2em
+					text-align: center
+				}
+			}
+		}
+	}
+}
+</style>

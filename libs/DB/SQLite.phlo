@@ -1,0 +1,11 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: SQLite library
+
+@ extends:     DB
+@ requires:    @DB
+
+handle => "SQLite/$file"
+method __construct(private string $file)
+
+prop PDO => new PDO('sqlite:'.$this->file)

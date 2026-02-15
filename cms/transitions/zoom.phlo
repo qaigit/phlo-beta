@@ -1,0 +1,49 @@
+<style ns=trans.zoom>
+html.zoom {
+	main: view-transition-name: main
+	\.forward::view-transition-old(main): animation: 260ms cubic-bezier(.25,1,.5,1) zoom-out both
+	\.forward::view-transition-new(main): animation: 260ms cubic-bezier(.25,1,.5,1) zoom-in both
+	\.back::view-transition-old(main): animation: 260ms cubic-bezier(.25,1,.5,1) zoom-out-reverse both
+	\.back::view-transition-new(main): animation: 260ms cubic-bezier(.25,1,.5,1) zoom-in-reverse both
+}
+@keyframes zoom-out {
+	0% {
+		opacity: 1
+		transform: scale(1)
+	}
+	100% {
+		opacity: 0
+		transform: scale(1.05)
+	}
+}
+@keyframes zoom-in {
+	0% {
+		opacity: 0
+		transform: scale(.96)
+	}
+	100% {
+		opacity: 1
+		transform: scale(1)
+	}
+}
+@keyframes zoom-out-reverse {
+	0% {
+		opacity: 1
+		transform: scale(1)
+	}
+	100% {
+		opacity: 0
+		transform: scale(.96)
+	}
+}
+@keyframes zoom-in-reverse {
+	0% {
+		opacity: 0
+		transform: scale(1.05)
+	}
+	100% {
+		opacity: 1
+		transform: scale(1)
+	}
+}
+</style>

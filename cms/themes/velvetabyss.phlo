@@ -1,0 +1,13 @@
+<style ns=theme.velvetabyss>
+:root {
+	$background: linear-gradient(to bottom, #1a0014, #2a0020, #3c0030)
+	$surface: #24001a
+	$primary: #ff4fa6
+	$text: #ffe6f4
+	$link: #ff9cd1
+	$row-even: #300026
+	$row-odd: #160010
+	$row-hover: #ff4fa629
+	$warning: #ff3366
+}
+</style>

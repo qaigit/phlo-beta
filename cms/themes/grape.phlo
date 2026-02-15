@@ -1,0 +1,13 @@
+<style ns=theme.grape>
+:root {
+	$background: #f3e5f5
+	$surface: #ce93d8
+	$primary: #8e24aa
+	$text: #4a148c
+	$link: #ab47bc
+	$row-even: #e1bee7
+	$row-odd: #f3e5f5
+	$row-hover: #ce93d829
+	$warning: #d32f2f
+}
+</style>

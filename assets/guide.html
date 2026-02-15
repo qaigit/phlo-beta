@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Guide - Phlo 1.0α</title>
+</head>
+<body>
+	<main id="main-content" class="content">
+		<h2 id="c1">1: Introduction</h2>
+		<p>Phlo is a programming language and engine built on top of PHP 8+, designed to create compact, clear, and performant web apps. Routing, controller code, views, styling, and frontend updates form a cohesive whole. Phlo transpiles <code>.phlo</code> to regular PHP classes and generates the necessary assets.</p>
+		<p>The web server points to your <strong>webroot <code>/www</code></strong>. Unknown paths are rewritten to <strong><code>/www/app.php</code></strong>, where Phlo reads your configuration, manages instances, and handles routes. The build phase runs <strong>automatically (JIT)</strong> as soon as source files change.</p><h3 id="c1.1">1.1: Philosophy</h3>
+		<ul>
+		<li><strong>Short code, high expressiveness</strong> – minimal syntax, no semicolons, compact routes.</li>
+		<li><strong>Freedom without condescension</strong> – Phlo does not enforce a framework structure.</li>
+		<li><strong>Balance in height/width</strong> – logical coherence instead of fragmentation across folders.</li>
+		<li><strong>Performance through simplicity</strong> – transpiled PHP runs without runtime penalty; frontend uses lightweight NDJSON updates.</li>
+		<li><strong>One coherent system</strong> – routing, rendering, assets, and frontend behavior belong together.</li>
+		</ul><h3 id="c1.2">1.2: What is Phlo</h3>
+		<p>Phlo is a <strong>superset of PHP</strong> with automatic build. A <code>.phlo</code> file can contain:</p>
+		<ul>
+		<li><strong>Controller code</strong> at top-level (executed after instantiation)</li>
+		<li><strong>Routes</strong> (space-separated)</li>
+		<li><strong>Methods</strong> &amp; <strong>props</strong> (including lazy props with <code>=&gt;</code>)</li>
+		<li><strong>Views</strong> (HTML abbreviations, <code>&lt;if&gt;</code>, <code>&lt;foreach&gt;</code>)</li>
+		<li><strong>Styles</strong> (compact CSS without semicolons)</li>
+		<li><strong>Frontend scripts</strong> (bundled together with the view)</li>
+		</ul>
+		<p>Phlo is modularly deployable: full-stack, frontend-engine-only, class-writer/codegen, or as an asset pipeline.</p><h3 id="c1.3">1.3: Installation</h3>
+		<h3>1) Place Engine</h3>
+		<p>Place the folder <strong><code>phlo/</code></strong> in your project (outside <code>/www</code>).</p>
+		<h3>2) Webserver → webroot <strong>/www</strong></h3>
+		<p>Set the webserver with <strong>document root to <code>/www</code></strong> and rewrite unknown paths to <code>app.php</code>.</p>
+		<p><strong>Nginx</strong></p>
+		<pre><code class="language-nginx">server {
+    root /path/to/project/www;
+
+    location / {
+        try_files $uri $uri/ /app.php?$query_string;
+    }
+}</code></pre>
+		<p><strong>Apache (.htaccess in /www)</strong></p>
+		<pre><code class="language-apache">RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ app.php [QSA,L]</code></pre>
+		<p>Static files (images, <code>app.js</code>, <code>app.css</code>) are served directly; only unknown paths go to Phlo.</p>
+		<h3>3) Content of <strong><code>/www/app.php</code></strong></h3>
+		<p>Use the <strong>working entry point</strong> as in your codebase:</p>
+		<pre><code class="language-php">&lt;?php
+require('/srv/phlo/phlo.php');
+phlo_app_jsonfile($app = dirname(__DIR__).'/', "$app/data/app.json");</code></pre>
+		<p>What this does:</p>
+		<ul>
+		<li>Loads the engine (<code>phlo/phlo.php</code>)</li>
+		<li>Determines the project path (<code>$app</code>)</li>
+		<li>Reads and validates <strong><code>/data/app.json</code></strong> (required)</li>
+		<li>Initializes instances, executes controller code, and starts routing</li>
+		</ul>
+		<h3>4) Build (JIT) and scripts</h3>
+		<ul>
+		<li>The engine performs the build <strong>automatically</strong> on the next request after a change (JIT).</li>
+		<li>If you want to build <strong>manually</strong> (e.g., in CI), do so <strong>via PHP</strong> by calling <code>phlo_build()</code>.</li>
+		</ul><h3 id="c1.4">1.4: Project structure</h3>
+		<p>A Phlo project has a fixed structure:</p>
+		<pre><code>/www/              ← webroot (public)
+  app.php          ← central entry point
+  app.js           ← automatically generated frontend bundle
+  app.css          ← automatically generated CSS
+
+/data/app.json     ← required configuration
+
+/phlo/             ← Phlo engine
+/php/              ← transpiled PHP (automatically)</code></pre>
+		<p><strong>Important points:</strong></p>
+		<ul>
+		<li>
+		<p><code>app.js</code> and <code>app.css</code> are <strong>completely automatically</strong> generated from your <code>.phlo</code> sources and <code>app.json</code> settings.
+→ You <strong>never write or modify these files manually</strong>.
+→ They are <strong>overwritten</strong> at each build phase.</p>
+		</li>
+		<li>
+		<p>The content of these files depends on the <strong><code>phloNS</code></strong>, <code>defaultNS</code>, <code>phloJS</code>, and CSS build options in <code>/data/app.json</code>.</p>
+		</li>
+		<li>
+		<p><code>/www/app.php</code> starts the engine and refers to your configuration.</p>
+		</li>
+		<li>
+		<p><code>/php</code> contains the transpiled classes. You also do not modify these files manually; they are generated or refreshed at each build phase.</p>
+		</li>
+		</ul><h2 id="c2">2: Configuration</h2>
+		<p>Each Phlo app has a <strong>mandatory</strong> configuration file:</p>
+		<pre><code>/data/app.json</code></pre>
+		<p>The engine reads this in from <code>app.php</code> and determines sources, libraries, bundling, and asset output.</p><h3 id="c2.1">2.1: Goal and position</h3>
+		<ul>
+		<li>Location: <strong><code>/data/app.json</code></strong> (relative to project base).</li>
+		<li>Loaded by <code>/www/app.php</code> via the Phlo engine.</li>
+		<li><strong>Strict JSON</strong> (no comments, no trailing commas).</li>
+		<li>Paths may use the placeholder <strong><code>%app/</code></strong> (will be replaced by the app path from <code>app.php</code>).</li>
+		</ul><h3 id="c2.2">2.2: Minimal configuration</h3>
+		<pre><code class="language-json">{
+  "id": "MyApp",
+  "version": ".1",
+  "host": "localhost",
+  "dashboard": "phlo",
+  "debug": true,
+  "build": {
+    "libs": []
+  }
+}</code></pre>
+		<h3>Why like this?</h3>
+		<ul>
+		<li><strong><code>build.libs</code> is required</strong> (can be an empty array).</li>
+		<li>All other <code>build</code> options are <strong>optional</strong> and you add them when needed (sources, namespaces, CSS/JS build, minify, etc.).</li>
+		</ul>
+		<blockquote>
+		<p>We will handle production/release without (full) build separately later.</p>
+		</blockquote><h3 id="c2.3">2.3: `build.sources`</h3>
+		<p>Only needed if you want <strong>more source paths</strong> than the app path from <code>/www/app.php</code>.</p>
+		<pre><code class="language-json">{
+  "build": {
+    "sources": [
+      "%app/",
+      "/srv/phloCMS/",
+      "/srv/phloCMS/fields/"
+    ],
+    "libs": []
+  }
+}</code></pre>
+		<ul>
+		<li>Each path can be absolute or start with <code>%app/</code>.</li>
+		<li>All <code>.phlo</code> in these paths count for routing, transpiling, and assets.</li>
+		</ul><h3 id="c2.4">2.4: `build.libs`</h3>
+		<p>Declare which libraries (from <code>phlo/libs/</code>) you <strong>want to preload</strong> and have known by your project.</p>
+		<pre><code class="language-json">{
+  "build": {
+    "libs": [
+      "DB/DB",
+      "DB/MySQL",
+      "model",
+      "payload"
+    ]
+  }
+}</code></pre>
+		<ul>
+		<li>Items correspond to files in <code>phlo/libs/</code> (without extension).</li>
+		<li><strong>On-demand autoload</strong> remains: if your code uses a not-yet-loaded lib, Phlo will load it automatically.
+		<code>build.libs</code> is therefore your <strong>explicit baseline/preload</strong> (and may be important for order/initialization).</li>
+		</ul><h3 id="c2.5">2.5: Namespaces &amp; assets</h3>
+		<p>Use <strong>only if you want to send bundling/asset-scopes</strong>.</p>
+		<pre><code class="language-json">{
+  "build": {
+    "libs": [],
+    "defaultNS": "app",
+    "phloNS": ["app", "cms"],
+    "iconNS": ["cms"],
+    "icons": "/srv/icons"
+  }
+}</code></pre>
+		<ul>
+		<li><code>defaultNS</code> – default namespace if there is no explicit <code>ns</code>.</li>
+		<li><code>phloNS</code> – determines <strong>which namespaces</strong> are included in the <strong>frontend bundles</strong> <strong>and</strong> for which namespaces Phlo <strong>writes assets to <code>/www/</code></strong> (so broader than just <code>app.js</code>/<code>app.css</code>: also extra bundles, icon-assets/sprites, etc., depending on available code/assets per namespace).</li>
+		<li><code>iconNS</code> + <code>icons</code> – namespaces and source for icon sets.</li>
+		</ul><h3 id="c2.6">2.6: Frontend build options</h3>
+		<pre><code class="language-json">{
+  "build": {
+    "libs": [],
+    "phloJS": false,
+    "buildCSS": true,
+    "minifyCSS": false,
+    "buildJS": true,
+    "minifyJS": false
+  }
+}</code></pre>
+		<table>
+		<thead>
+		<tr>
+		<th>key</th>
+		<th>type</th>
+		<th>meaning</th>
+		</tr>
+		</thead>
+		<tbody>
+		<tr>
+		<td><code>phloJS</code></td>
+		<td>bool</td>
+		<td>Bundle Phlo frontend engine (advanced use cases).</td>
+		</tr>
+		<tr>
+		<td><code>buildCSS</code></td>
+		<td>bool</td>
+		<td>Process styles from <code>.phlo</code> and write <strong>CSS assets</strong> (per namespace).</td>
+		</tr>
+		<tr>
+		<td><code>minifyCSS</code></td>
+		<td>bool</td>
+		<td>Minify CSS.</td>
+		</tr>
+		<tr>
+		<td><code>buildJS</code></td>
+		<td>bool</td>
+		<td>Bundle frontend scripts and write <strong>JS assets</strong> (per namespace).</td>
+		</tr>
+		<tr>
+		<td><code>minifyJS</code></td>
+		<td>bool</td>
+		<td>Minify JS.</td>
+		</tr>
+		</tbody>
+		</table>
+		<p><strong>Important:</strong> Everything that Phlo writes to <strong><code>/www/</code></strong> (such as <code>app.js</code>, <code>app.css</code> <strong>and</strong> any <strong>namespaced/extra assets</strong>) is <strong>generated</strong> and will be overwritten during builds. <strong>Do not</strong> edit manually.</p><h3 id="c2.7">2.7: Other fields</h3>
+		<ul>
+		<li><code>routes</code>, <code>extends</code>, etc. can be used by modules.</li>
+		<li><code>%app/</code> in paths is replaced by the current app path during init.</li>
+		<li>Keep <code>app.json</code> strictly valid.</li>
+		</ul><h2 id="c3">3: Syntax &amp; Structure</h2>
+		<p>Phlo is a <strong>superset of PHP</strong> with compact, semicolon-free syntax. In a single <code>.phlo</code> file, you combine routes, props, methods, views, styles, scripts, and controller code. The builder transpiles to regular PHP/JS/CSS.</p><h3 id="c3.1">3.1: File structure</h3>
+		<p>Top-level elements:</p>
+		<ul>
+		<li><code>function</code> — <strong>project-global</strong> functions</li>
+		<li><code>route</code> — routing to methods</li>
+		<li><code>static</code> — static values or static arrow methods</li>
+		<li><strong>controller code</strong> — top-level statements outside the above blocks</li>
+		<li><code>prop</code> — static or computed properties (may have arguments)</li>
+		<li><code>method</code> — methods on the generated class</li>
+		<li><code>view Name:</code> — views</li>
+		<li><code>&lt;script&gt;…&lt;/script&gt;</code> — scripts</li>
+		<li><code>&lt;style&gt;…&lt;/style&gt;</code> — styles</li>
+		</ul>
+		<p><strong>Minimal, valid example:</strong></p>
+		<pre><code class="language-phlo">route GET home =&gt; $this-&gt;main
+
+prop title = 'Welcome'
+
+method main =&gt; view($this-&gt;home)
+
+view home:
+&lt;h1&gt;$this-&gt;title&lt;/h1&gt;</code></pre><h3 id="c3.2">3.2: Controller code</h3>
+		<p>Top-level statements outside of blocks form the <strong>controller</strong> of the file. The controller runs <strong>after</strong> the instance exists (not in <code>__construct</code>) — this prevents circular references.</p>
+		<p>Example (harmless init):</p>
+		<pre><code class="language-phlo">prop initialized = false
+$this-&gt;initialized = true</code></pre><h3 id="c3.3">3.3: Statements</h3>
+		<ul>
+		<li>No semicolons: <strong>end of the line</strong> closes the statement.</li>
+		<li><strong>Multiline arguments</strong>: <strong>each</strong> argument line ends with a <strong>comma</strong>.</li>
+		<li>Spaces around <code>=&gt;</code>.</li>
+		</ul>
+		<p>Examples:</p>
+		<pre><code class="language-phlo">if ($active) $count = $count + 1
+
+foreach ($rows AS $r) $sum = $sum + $r-&gt;value
+
+foreach ($rows AS $r){
+  $sum = $sum + $r-&gt;value
+  $n = $n + 1
+}
+
+chunk (
+  title: 'Overview',
+  main: view($this-&gt;home),
+)
+
+apply (
+  title: 'Ready',
+  main: '&lt;p&gt;Done&lt;/p&gt;',
+)</code></pre><h3 id="c3.4">3.4: Variables &amp; Scopes</h3>
+		<ul>
+		<li>Variables like in PHP: <code>$name</code>.</li>
+		<li><strong>Global instances</strong> via <code>%Name</code> (e.g. <code>%MySQL</code>, <code>%payload</code>) — lazy via instance manager.</li>
+		<li>Scope: locals within functions/methods; props/statics on instance/class; <code>%…</code> shared project-wide.</li>
+		</ul><h3 id="c3.5">3.5: Constants</h3>
+		<p>Exact as defined in the engine:</p>
+		<table>
+		<thead>
+		<tr>
+		<th>Constant</th>
+		<th>Meaning / Value</th>
+		<th></th>
+		<th></th>
+		</tr>
+		</thead>
+		<tbody>
+		<tr>
+		<td><code>phlo</code></td>
+		<td>Current Phlo version (string)</td>
+		<td></td>
+		<td></td>
+		</tr>
+		<tr>
+		<td><code>cli</code></td>
+		<td><code>true</code> if there is no <code>REQUEST_METHOD</code> (CLI)</td>
+		<td></td>
+		<td></td>
+		</tr>
+		<tr>
+		<td><code>async</code></td>
+		<td><code>true</code> if <code>HTTP_X_REQUESTED_WITH</code> equals <code>'phlo'</code></td>
+		<td></td>
+		<td></td>
+		</tr>
+		<tr>
+		<td><code>method</code></td>
+		<td><code>'CLI'</code> or the HTTP method of the request</td>
+		<td></td>
+		<td></td>
+		</tr>
+		<tr>
+		<td><code>jsonFlags</code></td>
+		<td><code>JSON_PRETTY_PRINT                                      | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES</code></td>
+		</tr>
+		<tr>
+		<td><code>br</code></td>
+		<td><code>'&lt;br&gt;'</code></td>
+		<td></td>
+		<td></td>
+		</tr>
+		<tr>
+		<td><code>bs</code></td>
+		<td><code>'\\'</code> (backslash)</td>
+		<td></td>
+		<td></td>
+		</tr>
+		<tr>
+		<td><code>bt</code></td>
+		<td><code>'`'</code> (backtick)</td>
+		<td></td>
+		<td></td>
+		</tr>
+		<tr>
+		<td><code>colon</code></td>
+		<td><code>':'</code></td>
+		<td></td>
+		<td></td>
+		</tr>
+		<tr>
+		<td><code>comma</code></td>
+		<td><code>','</code></td>
+		<td></td>
+		<td></td>
+		</tr>
+		<tr>
+		<td><code>cr</code></td>
+		<td><code>"\r"</code></td>
+		<td></td>
+		<td></td>
+		</tr>
+		<tr>
+		<td><code>dash</code></td>
+		<td><code>'-'</code></td>
+		<td></td>
+		<td></td>
+		</tr>
+		<tr>
+		<td><code>dot</code></td>
+		<td><code>'.'</code></td>
+		<td></td>
+		<td></td>
+		</tr>
+		<tr>
+		<td><code>dq</code></td>
+		<td><code>'"'</code> (double quote)</td>
+		<td></td>
+		<td></td>
+		</tr>
+		<tr>
+		<td><code>eq</code></td>
+		<td><code>'='</code></td>
+		<td></td>
+		<td></td>
+		</tr>
+		<tr>
+		<td><code>lf</code></td>
+		<td><code>"\n"</code></td>
+		<td></td>
+		<td></td>
+		</tr>
+		<tr>
+		<td><code>nl</code></td>
+		<td><code>cr.lf</code>  → effectively <code>"\r\n"</code></td>
+		<td></td>
+		<td></td>
+		</tr>
+		<tr>
+		<td><code>perc</code></td>
+		<td><code>'%'</code></td>
+		<td></td>
+		<td></td>
+		</tr>
+		<tr>
+		<td><code>pipe</code></td>
+		<td><code>'                                                        | '</code></td>
+		<td></td>
+		</tr>
+		<tr>
+		<td><code>qm</code></td>
+		<td><code>'?'</code></td>
+		<td></td>
+		<td></td>
+		</tr>
+		<tr>
+		<td><code>semi</code></td>
+		<td><code>';'</code></td>
+		<td></td>
+		<td></td>
+		</tr>
+		<tr>
+		<td><code>slash</code></td>
+		<td><code>'/'</code></td>
+		<td></td>
+		<td></td>
+		</tr>
+		<tr>
+		<td><code>space</code></td>
+		<td><code>' '</code></td>
+		<td></td>
+		<td></td>
+		</tr>
+		<tr>
+		<td><code>sq</code></td>
+		<td><code>"'"</code> (single quote)</td>
+		<td></td>
+		<td></td>
+		</tr>
+		<tr>
+		<td><code>tab</code></td>
+		<td><code>"\t"</code></td>
+		<td></td>
+		<td></td>
+		</tr>
+		<tr>
+		<td><code>us</code></td>
+		<td><code>'_'</code></td>
+		<td></td>
+		<td></td>
+		</tr>
+		<tr>
+		<td><code>void</code></td>
+		<td><code>''</code> (empty string)</td>
+		<td></td>
+		<td></td>
+		</tr>
+		</tbody>
+		</table>
+		<blockquote>
+		<p>These constants are available everywhere in <code>.phlo</code>.</p>
+		</blockquote><h3 id="c3.6">3.6: Strings &amp; Operators</h3>
+		<p>Strings: <code>'single'</code> and <code>"double"</code>. Operators: according to PHP. Phlo adds more compact syntax (arrow-bodies, named arguments); semantics remain the same.</p><h3 id="c3.7">3.7: Functions</h3>
+		<p>Functions are <strong>project-global</strong> and are written to <code>/php/app.php</code>.</p>
+		<p><strong>Singleline:</strong></p>
+		<pre><code class="language-phlo">function add($a, $b) =&gt; $a + $b</code></pre>
+		<p>Multiline:</p>
+		<pre><code class="language-phlo">function sum($a, $b){
+  return $a + $b
+}</code></pre><h3 id="c3.8">3.8: Methods</h3>
+		<p>Methods belong to the class generated from the <code>.phlo</code> file.</p>
+		<pre><code class="language-phlo">method hello($who) =&gt; 'Hi '.$who
+
+method classify($x) {
+  if ($x &gt; 5) return 'large'
+  return 'small'
+}</code></pre>
+		<blockquote>
+		<p>Arrow for single-line logic; multi-line uses braces.</p>
+		</blockquote><h3 id="c3.9">3.9: Props</h3>
+		<p><strong>Static</strong> (transpiles to PHP class property; no function calls allowed):</p>
+		<pre><code class="language-phlo">prop title = 'App'
+prop defaults = ['theme' =&gt; 'dark']</code></pre>
+		<p><strong>Computed (lazy + cached):</strong></p>
+		<pre><code class="language-phlo">prop now =&gt; time()
+prop fullName =&gt; $this-&gt;first.' '.$this-&gt;last</code></pre>
+		<p><strong>Props with arguments</strong> (only computed):</p>
+		<pre><code class="language-phlo">prop repeat($n) =&gt; str_repeat('*', $n)
+
+# usage
+$this-&gt;repeat(5)</code></pre><h3 id="c3.10">3.10: Statics</h3>
+		<p>Definition:</p>
+		<pre><code class="language-phlo">static x = 1
+static y =&gt; time()</code></pre>
+		<p>Calling <strong>within the same class</strong>:</p>
+		<pre><code class="language-phlo">dx (
+  static::$x,
+  static::x(),
+  static::y,
+)</code></pre>
+		<p>Calling <strong>externally (via class name)</strong>:</p>
+		<pre><code class="language-phlo">dx (
+  test::$x,
+  test::x(),
+  test::y,
+)</code></pre>
+		<p><strong>Important:</strong></p>
+		<ul>
+		<li>Props and methods <strong>without arguments</strong> may be called <strong>without <code>()</code></strong>.</li>
+		<li><strong>Static methods</strong> always require <strong><code>()</code></strong> when called.</li>
+		<li>A static value (like <code>x = 1</code>) <strong>may also be called as a method</strong> (<code>x()</code>), for consistent syntax.</li>
+		</ul><h3 id="c3.11">3.11: Named Arguments</h3>
+		<p>Fully supported; makes calls explicit and less error-prone.</p>
+		<pre><code class="language-phlo">%MySQL-&gt;delete (
+  'Users',
+  'id=?',
+  id: 1,
+)</code></pre><h3 id="c3.12">3.12: Error handling</h3>
+		<ul>
+		<li>Based on PHP's errors/throwables.</li>
+		<li><code>debug: true</code> in <code>app.json</code> activates extensive debugging via the Phlo engine.</li>
+		</ul><h3 id="c3.13">3.13: Style guidelines</h3>
+		<ul>
+		<li>Spaces around <code>=&gt;</code></li>
+		<li>One-liner <code>if</code>/<code>foreach</code> without braces okay; multiline ⇒ with braces</li>
+		<li>Multiline arguments ⇒ <strong>comma at EOL</strong></li>
+		<li>Views: <code>view Name:</code> + content line(s), no extra indent</li>
+		<li>No inline braces in CSS</li>
+		</ul><h2 id="c4">4: Routing</h2>
+		<p>Routing in Phlo associates a <strong>space-separated path</strong> + <strong>HTTP method</strong> with a <strong>target</strong> (usually a method). Routes from all <code>.phlo</code> files are collected; the router is activated with <code>app::route()</code>.</p><h3 id="c4.1">4.1: Base form</h3>
+		<pre><code>route [async|both] [GET|POST|PUT|DELETE|PATCH] pad [pad2 ...] =&gt; target</code></pre>
+		<ul>
+		<li><strong>Paths</strong> are written with <strong>spaces</strong> (no <code>/</code> in the route definition).</li>
+		<li><strong>Target</strong>: a direct call or statement block.</li>
+		</ul>
+		<p>Example:</p>
+		<pre><code class="language-phlo">route GET home =&gt; $this-&gt;main
+method main =&gt; view($this-&gt;home)</code></pre><h3 id="c4.2">4.2: sync / async / both</h3>
+		<table>
+		<thead>
+		<tr>
+		<th>Keyword</th>
+		<th>Behavior</th>
+		</tr>
+		</thead>
+		<tbody>
+		<tr>
+		<td><em>(omit)</em></td>
+		<td>Only <strong>sync</strong> (regular HTTP)</td>
+		</tr>
+		<tr>
+		<td><code>async</code></td>
+		<td>Only <strong>async</strong> (requests from Phlo-frontend)</td>
+		</tr>
+		<tr>
+		<td><code>both</code></td>
+		<td>Sync <strong>and</strong> async allowed</td>
+		</tr>
+		</tbody>
+		</table>
+		<pre><code class="language-phlo">route both GET data =&gt; $this-&gt;loadData
+route async POST items save =&gt; $this-&gt;saveItems</code></pre><h3 id="c4.3">4.3: Variables</h3>
+		<p>Phlo parses each path segment. Segments that start with <code>$</code> are <strong>variables</strong> with extra capabilities:</p>
+		<h3>4.3.1 Required (passed to target)</h3>
+		<pre><code class="language-phlo">route GET user $id =&gt; $this-&gt;showUser($id)
+method showUser($id) =&gt; view($this-&gt;profile)</code></pre>
+		<h3>4.3.2 <strong>Optional presence</strong> with <code>?</code>  → <strong>boolean</strong></h3>
+		<pre><code class="language-phlo">route GET search $full? =&gt; $this-&gt;search($full)</code></pre>
+		<ul>
+		<li>Matches <code>/search</code> <strong>and</strong> <code>/search/full</code>.</li>
+		<li><code>$full</code> is <strong>true</strong> when the segment <code>full</code> is present, otherwise <strong>false</strong>.
+(The implementation literally checks if the request segment is equal to the <strong>name</strong> without <code>?</code>.)</li>
+		</ul>
+		<h3>4.3.3 <strong>Rest</strong> (variable length) with <code>=*</code></h3>
+		<pre><code class="language-phlo">route GET file $path=* =&gt; $this-&gt;serveFile($path)</code></pre>
+		<ul>
+		<li>Matches all remaining segments as <strong>one</strong> string in <code>$path</code>.</li>
+		</ul>
+		<h3>4.3.4 <strong>Default value</strong> with <code>=</code></h3>
+		<pre><code class="language-phlo">route GET page $slug=home =&gt; $this-&gt;page($slug)</code></pre>
+		<ul>
+		<li>Without segment → <code>$slug = 'home'</code>.</li>
+		<li>With segment → <code>$slug = '&lt;value&gt;'</code>.</li>
+		</ul>
+		<h3>4.3.5 <strong>Length requirement</strong> with <code>.N</code></h3>
+		<pre><code class="language-phlo">route GET code $pin.6 =&gt; $this-&gt;enter($pin)</code></pre>
+		<ul>
+		<li>Matches only if the length of <code>$pin</code> is exactly <strong>6</strong>.</li>
+		</ul>
+		<h3>4.3.6 <strong>Choice lists</strong> with <code>:a,b,c</code></h3>
+		<pre><code class="language-phlo">route GET report $range:daily,weekly,monthly =&gt; $this-&gt;report($range)</code></pre>
+		<ul>
+		<li>The segment must be one of the <strong>specified values</strong>.</li>
+		<li>In absence (empty) and <strong>with</strong> default, the default is applied.</li>
+		<li>Otherwise, the match fails.</li>
+		</ul>
+		<p>You can <strong>combine</strong> these forms. Examples:</p>
+		<pre><code class="language-phlo"># enum + required id
+route GET export $fmt:csv,json $id =&gt; $this-&gt;export($fmt, $id)
+
+# enum + default
+route GET theme $name:light,dark=light =&gt; $this-&gt;theme($name)</code></pre><h3 id="c4.4">4.4: Payload check with `@`</h3>
+		<p>You specify <strong>exact</strong> body keys with one <code>@</code> and a <strong>comma-separated</strong> list. The router compares this <strong>1-to-1</strong> with the keys from <code>%payload</code> (exact set; order as provided by the engine).</p>
+		<pre><code class="language-phlo">route POST user @name,email =&gt; $this-&gt;createUser
+
+method createUser =&gt; dx(%payload-&gt;name, %payload-&gt;email)</code></pre>
+		<blockquote>
+		<p>Body keys are <strong>not</strong> bound as method parameters; you read them via <code>%payload</code>.</p>
+		</blockquote><h3 id="c4.5">4.5: Targets</h3>
+		<h3>Local method</h3>
+		<pre><code class="language-phlo">route GET profile show =&gt; $this-&gt;show
+method show =&gt; view($this-&gt;profile)</code></pre>
+		<h3>External class method (static)</h3>
+		<pre><code class="language-phlo">route GET api version $major =&gt; api::getVersion($major)</code></pre>
+		<ul>
+		<li>Static calls: <strong>parentheses required</strong>, even without arguments.</li>
+		<li>Explicitly pass path variables.</li>
+		</ul><h3 id="c4.6">4.6: Activate router</h3>
+		<p>Routes are only matched <strong>after</strong>:</p>
+		<pre><code class="language-phlo">app::route()</code></pre>
+		<p>Place this call, for example, in <code>app.phlo</code> (or another central controller) after your app initialization and before a fallback for 404 handling.</p><h3 id="c4.7">4.7: Recommended structure</h3>
+		<ul>
+		<li>Place routes at the top per file.</li>
+		<li>
+		<p>Keep path and method name logically aligned:</p>
+		<pre><code class="language-phlo">route GET users list  =&gt; $this-&gt;listUsers
+route POST users add  =&gt; $this-&gt;addUser</code></pre>
+		</li>
+		<li>Always pass variables in target.</li>
+		<li><code>both</code> only when an endpoint intentionally needs to be both sync and async.</li>
+		<li>Use choice lists <code>:…</code> instead of separate <code>if</code> branches for fixed variants.</li>
+		</ul><h2 id="c5">5: Views</h2>
+		<p>In Phlo, you define views directly in <code>.phlo</code> files. A view is a named or unnamed block that starts with <code>view</code> and contains HTML (plus minimal Phlo constructs).</p><h3 id="c5.1">5.1: Declaration</h3>
+		<ul>
+		<li>
+		<p><strong>Named</strong></p>
+		<pre><code class="language-phlo">view home:
+&lt;h1&gt;Welcome&lt;/h1&gt;</code></pre>
+		</li>
+		<li>
+		<p><strong>Nameless</strong> → the name is automatically <strong><code>view</code></strong></p>
+		<pre><code class="language-phlo">view:
+&lt;p&gt;Test&lt;/p&gt;</code></pre>
+		</li>
+		</ul><h3 id="c5.2">5.2: Arguments</h3>
+		<p>Views can have <strong>arguments</strong> (including defaults):</p>
+		<pre><code class="language-phlo">view($x = 0):
+&lt;p&gt;Value: $x&lt;/p&gt;
+
+view detail($input):
+&lt;p&gt;Input: $input&lt;/p&gt;</code></pre>
+		<p>Calling:</p>
+		<pre><code class="language-phlo">method show =&gt; view($this-&gt;detail('abc'))
+method show2 =&gt; view($this-&gt;view(5))</code></pre>
+		<blockquote>
+		<p>Just like with methods, parentheses are required when you provide arguments.</p>
+		</blockquote><h3 id="c5.3">5.3: Single line and multiline</h3>
+		<ul>
+		<li>
+		<p><strong>Singleline view</strong></p>
+		<pre><code class="language-phlo">view: &lt;p&gt;test&lt;/p&gt;</code></pre>
+		</li>
+		<li>
+		<p><strong>Multiline view</strong>: the block <strong>ends with an empty line</strong></p>
+		<pre><code class="language-phlo">view:
+&lt;p&gt;Line 1&lt;/p&gt;
+&lt;p&gt;Line 2&lt;/p&gt;
+
+view nextView:
+&lt;p&gt;Etc&lt;/p&gt;</code></pre>
+		</li>
+		</ul><h3 id="c5.4">5.4: Shorthand HTML</h3>
+		<p>Compact HTML shorthand is automatically converted:</p>
+		<pre><code class="language-phlo"># shorthand
+&lt;p#id.class1.class2/&gt;
+
+# equivalent
+&lt;p id="id" class="class1 class2"&gt;&lt;/p&gt;</code></pre>
+		<ul>
+		<li>A <strong>trailing slash</strong> on a tag ensures that the <strong>closing tag is automatically</strong> placed.</li>
+		</ul><h3 id="c5.5">5.5: Variables and expressions</h3>
+		<h3>5.5.1 Direct variables and <strong>single properties</strong></h3>
+		<p>You can write <strong>directly</strong> in the view:</p>
+		<pre><code class="language-phlo">view($name):
+&lt;p&gt;Hello $name, it is now $this-&gt;time.&lt;/p&gt;</code></pre>
+		<blockquote>
+		<p>Direct allowed: regular variables and <strong>single</strong> property access (like <code>$this-&gt;time</code>).
+		<strong>No</strong> chained access or function/method calls directly in the HTML.</p>
+		</blockquote>
+		<h3>5.5.2 Functions, methods, <strong>chained</strong> or complex expressions</h3>
+		<p>Use <strong>expression markers</strong>:</p>
+		<pre><code class="language-phlo">view($x = 1):
+&lt;p&gt;{{ $this-&gt;call('test') }}&lt;/p&gt;
+&lt;p&gt;{( $x &gt; 1 ? 'Multiple' : 'Single' )}&lt;/p&gt;
+&lt;p&gt;{{ $this-&gt;members-&gt;all }}&lt;/p&gt;</code></pre>
+		<ul>
+		<li><code>{{ … }}</code> and <code>{( … )}</code> are for <strong>evaluation</strong> of functions/methods/complex or chained expressions.</li>
+		<li>Use these markers in text <strong>and</strong> in attribute values (see 5.6).</li>
+		</ul>
+		<p><em>(We intentionally do not impose any extra semantics on these two forms; both are intended for inline expressions.)</em></p><h3 id="c5.6">5.6: Attribute values</h3>
+		<p>Attribute values <strong>may be without quotes</strong> if they <strong>do not</strong> contain spaces, <code>@</code> or variables:</p>
+		<pre><code class="language-phlo">view:
+&lt;p title=correct&gt;Correct answer&lt;/p&gt;
+&lt;a href=/test1 data-value="$this-&gt;value"&gt;Link&lt;/a&gt;
+&lt;a href=/test2 data-value="{{ $this-&gt;compute('value') }}"&gt;Link&lt;/a&gt;</code></pre>
+		<ul>
+		<li>With variables or expressions ⇒ <strong>use quotes</strong> (or an expression marker within quotes).</li>
+		</ul><h3 id="c5.7">5.7: Statements</h3>
+		<p>Use control-flow via <strong>tags</strong> in the HTML:</p>
+		<pre><code class="language-phlo">view:
+&lt;p&gt;List:&lt;/p&gt;
+&lt;foreach $this-&gt;list AS $key =&gt; $value&gt;
+  &lt;p&gt;Item: $key&lt;/p&gt;
+  &lt;if $value &gt; 1&gt;
+    &lt;p&gt;High value: $value&lt;/p&gt;
+  &lt;elseif $value === 1&gt;
+    &lt;p&gt;Exactly 1: $value&lt;/p&gt;
+  &lt;else&gt;
+    &lt;p&gt;Other value: $value&lt;/p&gt;
+  &lt;/if&gt;
+&lt;/foreach&gt;</code></pre>
+		<ul>
+		<li><code>foreach</code> opens with <code>&lt;foreach …&gt;</code> and closes with <code>&lt;/foreach&gt;</code>.</li>
+		<li><code>if</code>/<code>elseif</code>/<code>else</code> close together with <code>&lt;/if&gt;</code>.</li>
+		</ul><h3 id="c5.8">5.8: Render view</h3>
+		<p>A view <strong>is rendered</strong> with <code>view($this-&gt;Name)</code> (or the anonymous <code>view</code>) <strong>as a call</strong>. This call <strong>sends the output</strong> and <strong>terminates the script</strong>. The same applies to <code>apply()</code>.</p>
+		<pre><code class="language-phlo">route GET home =&gt; $this-&gt;home
+
+method home =&gt; view($this-&gt;home)
+
+view home:
+&lt;h1&gt;$this-&gt;title&lt;/h1&gt;</code></pre>
+		<p><strong>Do not do</strong>:</p>
+		<pre><code class="language-phlo"># ❌ error – "gluing" views together does not exist; the first call terminates.
+method dashboard {
+  view($this-&gt;header)
+  view($this-&gt;content)
+}</code></pre>
+		<p>If you want multiple pieces of output: <strong>create one view</strong> that combines them, or build it up in the view itself.</p><h3 id="c5.9">5.9: Best practices</h3>
+		<ul>
+		<li>Keep views <strong>small</strong> and clear; split large parts up.</li>
+		<li>Use <strong>direct variables/single properties</strong> in the HTML; anything more complex goes between <code>{{ … }}</code> or <code>{( … )}</code>.</li>
+		<li>End multiline views with a <strong>blank line</strong>; use <strong>singleline</strong> where possible.</li>
+		<li>Use shorthand for compact markup, but keep it readable.</li>
+		<li>Remember that <code>view()</code> and <code>apply()</code> are <strong>terminating</strong>: no &quot;paste rendering&quot;.</li>
+		</ul><h2 id="c6">6: CSS</h2>
+		<p>Phlo uses a compact, semicolon-free CSS syntax within <code>&lt;style&gt;</code> blocks.<br />
+You write rules with <strong>colons</strong> as separators:</p>
+		<ul>
+		<li><code>selector: property: value</code>  </li>
+		<li>nested: <code>A: B: property: value</code>  → output: <code>A B { property: value; }</code></li>
+		</ul>
+		<p><strong>Rules:</strong></p>
+		<ul>
+		<li><strong>One rule = one declaration.</strong> No semicolons in the source; the engine adds them.  </li>
+		<li><strong>Colon <code>:</code></strong> separates chain levels and property from value.  </li>
+		<li><strong>Backslash <code>\</code> in nestings</strong> “glues” the <strong>next selector part</strong> to the parent. That next part can be a pseudo (<code>:…</code>), attribute selector (<code>[…]</code>), etc.  </li>
+		<li><strong><code>@media (…)</code> can be inside a selector block;</strong> Phlo <strong>hoists</strong> this to the right place while keeping the current selector.</li>
+		</ul><h3 id="c6.1">6.1: `&lt;style&gt;` block</h3>
+		<pre><code class="language-phlo">&lt;style&gt;
+html { height: 100dvh; }
+body {
+  background: #947b6c;
+  font-family: Sans-serif;
+}
+body p { line-height: 2em; }
+&lt;/style&gt;</code></pre><h3 id="c6.2">6.2: Chains &amp; groups</h3>
+		<p>Chain with double colons; group with comma — the <strong>full context</strong> is applied per item.</p>
+		<pre><code class="language-phlo">&lt;style&gt;
+body: h1, p: \:first-letter: color: green
+&lt;/style&gt;</code></pre>
+		<ul>
+		<li>Context: <code>body</code></li>
+		<li>Targets: <code>h1</code> and <code>p</code> (with glued <code>:first-letter</code>)</li>
+		<li><strong>Backslash</strong> before <code>:first-letter</code> glues that part to the preceding selector within the chain.</li>
+		</ul>
+		<p>Output:</p>
+		<pre><code class="language-css">body h1:first-letter,
+body p:first-letter { color: green; }</code></pre><h3 id="c6.3">6.3: Media queries in selector</h3>
+		<p>You can write <code>@media (…)</code> <strong>inside</strong> the selector block; Phlo moves it to the right place and retains the selector context:</p>
+		<pre><code class="language-phlo">&lt;style&gt;
+h1 {
+  color: white
+  @media (max-width: 768px): color: black
+}
+&lt;/style&gt;</code></pre>
+		<p>Output:</p>
+		<pre><code class="language-css">h1 { color: white; }
+@media (max-width: 768px){
+  h1 { color: black; }
+}</code></pre><h3 id="c6.4">6.4: Variables</h3>
+		<p>Phlo supports <strong>CSS variables</strong> via <code>$names</code>.
+You can define variables in <code>:root</code>, or at any other level — but <code>:root</code> is common for global theming.</p>
+		<pre><code class="language-phlo">&lt;style&gt;
+:root {
+  $background: #0d0d0d
+  $surface: #1a1a1a
+  $text: #ffffff
+  $accent: #ff4a00
+}
+
+body {
+  background: $background
+  color: $text
+}
+
+button {
+  background: $accent
+  color: $text
+}
+&lt;/style&gt;</code></pre>
+		<p><strong>Output</strong></p>
+		<pre><code class="language-css">:root {
+  --background: #0d0d0d;
+  --surface: #1a1a1a;
+  --text: #ffffff;
+  --accent: #ff4a00;
+}
+
+body {
+  background: var(--background);
+  color: var(--text);
+}
+
+button {
+  background: var(--accent);
+  color: var(--text);
+}</code></pre>
+		<p>👉 Phlo automatically converts <code>$variables</code> to <code>--custom-properties</code> and uses <code>var(--...)</code> when calling.
+You can reuse variables anywhere — even within media queries and nested selectors.</p><h3 id="c6.5">6.5: Dynamic variables</h3>
+		<p>Phlo's frontend engine contains the library <strong><code>DOM/CSS.var</code></strong>, which allows you to access and modify defined <code>$variables</code> in CSS <strong>directly from JavaScript</strong>, via the global <code>app.var</code> object.</p>
+		<p>Each <code>$variable</code> in your CSS is automatically available under <code>app.var.&lt;name&gt;</code>.</p>
+		<h3>Example</h3>
+		<pre><code class="language-phlo">&lt;style&gt;
+:root {
+  $background: #0d0d0d
+  $text: #ffffff
+}
+&lt;/style&gt;
+
+&lt;script&gt;
+app.var.background = '#000000'
+const textColor = app.var.text
+&lt;/script&gt;</code></pre>
+		<ul>
+		<li><code>app.var.background = '#000000'</code> → live updates the value of <code>--background</code> in the DOM, without rebuild or reload.</li>
+		<li><code>const textColor = app.var.text</code> → retrieves the current value.</li>
+		</ul>
+		<p>👉 These adjustments work <strong>real-time</strong> in the browser and directly affect all elements that use the variable.</p>
+		<p>You can use this for, among other things:</p>
+		<ul>
+		<li><strong>Theme switches</strong> (dark/light mode)</li>
+		<li>Dynamically adjusting accent colors based on user input</li>
+		<li>Toggling interactive UIs without separate CSS classes</li>
+		</ul>
+		<h3>Functionality</h3>
+		<ul>
+		<li>The CSS engine converts <code>$background</code> to <code>--background</code>.</li>
+		<li>The frontend engine reads/writes this via <code>document.documentElement.style</code>.</li>
+		<li><code>app.var</code> provides a simple proxy object so you can work as if they are regular JS properties.</li>
+		</ul><h3 id="c6.6">6.6: Complete example</h3>
+		<pre><code class="language-css">body {
+  background: #947b6c;
+  font-family: Sans-serif;
+}
+body h1:first-letter,
+body p:first-letter {
+  color: green;
+}
+body p {
+  line-height: 2em;
+}
+h1 {
+  color: white;
+}
+html {
+  height: 100dvh;
+}
+p {
+  color: navy;
+}
+p:last-child {
+  color: yellow;
+}
+@media (max-width: 768px){
+  h1 {
+    color: black;
+  }
+}</code></pre><h3 id="c6.7">6.7: Best practices</h3>
+		<ul>
+		<li><strong>Use <code>$variables</code></strong> for colors, spacing, and fonts — this makes theming and dark/light modes easy.</li>
+		<li>Define global theme variables in <code>:root</code>.</li>
+		<li>Use selector chains and grouping for compact, readable code.</li>
+		<li>Just place <code>@media</code> in the block; Phlo will neatly position them in the right place.</li>
+		<li>Use <code>\</code> in nestings to attach pseudo-classes or attributes to the parent selector.</li>
+		<li>No semicolons in your code; Phlo ensures correct CSS output.</li>
+		</ul><h2 id="c7">7: ORM</h2>
+		<p>Phlo includes a powerful built-in <strong>ORM</strong> that allows you to define database tables as classes.<br />
+Models can be quickly defined via <code>columns</code> or extensively via a declarative <code>schema</code>.<br />
+Records are treated as <strong>instances</strong>, with support for props, methods, views, relationships, and multiple database engines.</p><h3 id="c7.1">7.1: Basic principles</h3>
+		<p>An ORM model is a <code>.phlo</code> file with:</p>
+		<ul>
+		<li><code>@ class:</code> name of the model (and table)</li>
+		<li><code>@ extends: model</code></li>
+		<li><code>static table</code> and <code>columns</code> or <code>schema</code></li>
+		<li>Optional: relationships (<code>parent</code>, <code>child</code>, <code>many</code>)</li>
+		<li>Props, methods, and views work per <strong>record-instance</strong></li>
+		</ul>
+		<p>Example:</p>
+		<pre><code class="language-phlo">@ class: user
+@ extends: model
+
+view =&gt; $this-&gt;name
+
+static table = 'users'
+static columns = 'id,name,email,active,created'</code></pre><h3 id="c7.2">7.2: Defining models</h3>
+		<h3>7.2.1 Plate with <code>columns</code> (fast and light)</h3>
+		<p>Use <code>columns</code> for simple tables:</p>
+		<pre><code class="language-phlo">@ class: shipment
+@ extends: model
+
+view: $this-&gt;destination ($this-&gt;user)
+
+static table = 'shipments'
+static order = 'changed DESC'
+static columns = 'id,user,destination,costs,valid,weight,shipped,created,changed'
+static objParents = ['user' =&gt; 'user']</code></pre>
+		<pre><code class="language-phlo">@ class: user
+@ extends: model
+
+view =&gt; $this-&gt;name
+
+static table = 'users'
+static order = 'changed DESC'
+static columns = 'id,name,email,level,active,created,changed'
+static objChildren = ['shipments' =&gt; 'shipment']</code></pre>
+		<hr />
+		<h3>7.2.2 With <code>schema</code> and <code>field(...)</code> (rich and declarative)</h3>
+		<p>With <code>schema</code> you define fields, relationships, and UI all at once:</p>
+		<pre><code class="language-phlo">@ class: shipment
+@ extends: model
+
+view: $this-&gt;destination ($this-&gt;user)
+
+static table = 'shipments'
+static schema =&gt; arr (
+    id: field (type: 'token', length: 4, title: 'ID'),
+    destination: field (type: 'text', required: true, search: true),
+    user: field (type: 'parent', obj: 'user', required: true),
+    costs: field (type: 'price', prefix: '€ '),
+    valid: field (type: 'bool'),
+    attachments: field (type: 'child', obj: 'attachment', list: true),
+)</code></pre>
+		<pre><code class="language-phlo">@ class: user
+@ extends: model
+
+view =&gt; $this-&gt;name
+
+static table = 'users'
+static schema =&gt; arr (
+    id: field (type: 'token'),
+    name: field (type: 'text', search: true, required: true),
+    email: field (type: 'email', required: true),
+    shipments: field (type: 'child', obj: 'shipment'),
+    groups: field (type: 'many', obj: 'group', table: 'user_groups'),
+)</code></pre>
+		<blockquote>
+		<p><code>schema</code> is especially powerful in combination with PhloCMS, but also works standalone.</p>
+		</blockquote><h3 id="c7.3">7.3: CRUD</h3>
+		<pre><code class="language-phlo"># Retrieve
+$user = user::record(id: 1)
+$list = shipment::records(order: 'created DESC')
+
+# Create
+$shipment = shipment::create(destination: 'Paris', user: 1)
+
+# Edit &amp; save
+$shipment-&gt;destination = 'Lyon'
+$shipment-&gt;objSave
+
+# Delete
+shipment::delete('id=?', $shipment-&gt;id)</code></pre>
+		<ul>
+		<li><code>record(...)</code> → single record (or null)</li>
+		<li><code>records(...)</code> → array of records (class instances)</li>
+		<li><code>create(...)</code> → insert + instant retrieve</li>
+		<li><code>objSave</code> → save instance (insert/update depending on id)</li>
+		<li><code>delete(...)</code> → static delete with SQL-where</li>
+		</ul><h3 id="c7.4">7.4: Relational navigation</h3>
+		<p>Relationships are available via properties:</p>
+		<table>
+		<thead>
+		<tr>
+		<th>Type</th>
+		<th>Declaration</th>
+		<th>Usage</th>
+		</tr>
+		</thead>
+		<tbody>
+		<tr>
+		<td>parent</td>
+		<td><code>type: parent</code></td>
+		<td><code>$shipment-&gt;user</code></td>
+		</tr>
+		<tr>
+		<td>child</td>
+		<td><code>type: child</code></td>
+		<td><code>$user-&gt;shipments</code></td>
+		</tr>
+		<tr>
+		<td>many</td>
+		<td><code>type: many</code></td>
+		<td><code>$user-&gt;groups</code></td>
+		</tr>
+		</tbody>
+		</table>
+		<h3>Many-to-many</h3>
+		<p><code>type: many</code> uses a pivot table:</p>
+		<pre><code class="language-phlo">groups: field (
+    type: 'many',
+    obj: 'group',
+    table: 'user_groups',
+)</code></pre>
+		<p>Navigation:</p>
+		<pre><code class="language-phlo">$user = user::record(id: 1)
+foreach ($user-&gt;groups as $group)
+  echo $group-&gt;title</code></pre>
+		<p>Relationships are <strong>batch-loaded</strong> for performance. No cross-DB joins occur; each class loads from its own engine.</p><h3 id="c7.5">7.5: Instance dynamics</h3>
+		<p>Each record is a <strong>real instance</strong> of your model class.<br />
+You can use props, methods, and views to add virtual fields, calculations, or representations:</p>
+		<pre><code class="language-phlo">@ class: shipment
+@ extends: model
+
+prop summary =&gt; $this-&gt;destination.' ('.$this-&gt;user.')'
+method tax =&gt; $this-&gt;costs * 0.21
+
+view:
+&lt;p&gt;$this-&gt;summary&lt;/p&gt;
+&lt;p&gt;{( $this-&gt;tax )}&lt;/p&gt;</code></pre>
+		<p>Usage:</p>
+		<pre><code class="language-phlo">$shipment = shipment::record(id: 'AB12')
+echo $shipment-&gt;summary
+echo $shipment   # uses view as string</code></pre>
+		<p>Props and methods always operate on the <strong>record instance</strong>, not statically.</p><h3 id="c7.6">7.6: Filtering en queries</h3>
+		<p>All query methods accept named arguments and SQL-like filters:</p>
+		<pre><code class="language-phlo">shipment::records(destination: 'Paris')
+shipment::records(where: 'valid=1 AND weight&gt;10')
+shipment::pair(columns: 'id,destination')</code></pre>
+		<p>Supported: <code>where</code>, <code>order</code>, <code>group</code>, <code>joins</code>, caching, and schema-aware columns.</p><h3 id="c7.7">7.7: Caching and performance</h3>
+		<p>The ORM uses internal buffers (<code>objRecords</code>, <code>objLoaded</code>) for relational lookups and optional <strong>APCu caching</strong> via:</p>
+		<pre><code class="language-phlo">static objCache = true       # 1 day
+# or
+static objCache = 600        # 10 minutes</code></pre>
+		<p>Records and relationships are loaded in batches. Use <code>records()</code> for bulk selections instead of <code>record()</code> in loops.</p><h3 id="c7.8">7.8: Multiple engines</h3>
+		<p>Phlo supports multiple backends via <code>prop DB</code>. By default, it is <code>%MySQL</code>, but you can set any engine per model.</p>
+		<h3>SQLite</h3>
+		<pre><code class="language-phlo">prop DB =&gt; %SQLite(data.'users.db')</code></pre>
+		<pre><code class="language-phlo">@ class: notes
+@ extends: model
+
+prop DB =&gt; %SQLite(data.'notes.db')
+static table = 'notes'
+static columns = 'id,title,body'</code></pre>
+		<h3>PostgreSQL</h3>
+		<pre><code class="language-phlo">prop DB =&gt; %PostgreSQL</code></pre>
+		<pre><code class="language-phlo">@ class: invoices
+@ extends: model
+
+prop DB =&gt; %PostgreSQL
+static table = 'invoices'
+static columns = 'id,customer_id,total,created'</code></pre>
+		<blockquote>
+		<p>Tables on different engines can be combined in relationships; each class retrieves its own data.</p>
+		</blockquote>
+		<hr />
+		<h3><code>/data/creds.ini</code></h3>
+		<p>For engines like MySQL and PostgreSQL, place your credentials in:</p>
+		<pre><code>/data/creds.ini</code></pre>
+		<pre><code class="language-ini">[mysql]
+host     = localhost
+database = db_name
+user     = db_user
+password = db_password
+
+[postgresql]
+host     = localhost
+database = my_pg_db
+user     = pg_user
+password = pg_pass</code></pre>
+		<p>Phlo automatically loads these via <code>%creds-&gt;...</code>.</p><h3 id="c7.9">7.9: Overview of functions</h3>
+		<table>
+		<thead>
+		<tr>
+		<th>Function / Property</th>
+		<th>Type</th>
+		<th>Description</th>
+		</tr>
+		</thead>
+		<tbody>
+		<tr>
+		<td><code>record(...)</code></td>
+		<td>static</td>
+		<td>Retrieves 1 record (or null)</td>
+		</tr>
+		<tr>
+		<td><code>records(...)</code></td>
+		<td>static</td>
+		<td>Retrieves multiple records (array)</td>
+		</tr>
+		<tr>
+		<td><code>create(...)</code></td>
+		<td>static</td>
+		<td>Insert + retrieve</td>
+		</tr>
+		<tr>
+		<td><code>objSave</code></td>
+		<td>instance</td>
+		<td>Insert or update</td>
+		</tr>
+		<tr>
+		<td><code>delete(where, …)</code></td>
+		<td>static</td>
+		<td>Deletion</td>
+		</tr>
+		<tr>
+		<td><code>pair</code>, <code>item</code>, <code>column</code></td>
+		<td>static</td>
+		<td>Quick query helpers</td>
+		</tr>
+		<tr>
+		<td><code>objParents</code> / <code>schema: parent</code></td>
+		<td>declarative</td>
+		<td>Parent relationships</td>
+		</tr>
+		<tr>
+		<td><code>objChildren</code> / <code>schema: child</code></td>
+		<td>declarative</td>
+		<td>Child relationships</td>
+		</tr>
+		<tr>
+		<td><code>schema: many</code></td>
+		<td>declarative</td>
+		<td>Many-to-many</td>
+		</tr>
+		<tr>
+		<td><code>objCache</code></td>
+		<td>static</td>
+		<td>Optional APCu caching</td>
+		</tr>
+		<tr>
+		<td><code>prop DB</code></td>
+		<td>static</td>
+		<td>Per-model engine</td>
+		</tr>
+		</tbody>
+		</table><h3 id="c7.10">7.10: Best practices</h3>
+		<ul>
+		<li>Use <code>columns</code> for quick, simple models.</li>
+		<li>Use <code>schema</code> for rich definitions and CMS integration.</li>
+		<li>Define a <code>view</code> for string representations.</li>
+		<li>Use props for virtual fields.</li>
+		<li><code>objSave</code> instead of <code>save</code>.</li>
+		<li>Use <code>records()</code> for bulk loads.</li>
+		<li>Separate models by engine with <code>prop DB</code>.</li>
+		<li>Use credentials in <code>/data/creds.ini</code>.</li>
+		<li>Keep models declarative; logic in props/methods.</li>
+		</ul><h2 id="c8">8: Instance Management</h2>
+		<p>Phlo uses its own <strong>instance manager</strong> to efficiently and predictably initialize and reuse objects. This system determines <strong>when controller code is executed</strong>, how instances are stored, and how circular references are prevented.</p><h3 id="c8.1">8.1: Basic explanation</h3>
+		<p>When you define a <code>.phlo</code> file, it is converted into a class during the build phase.<br />
+Each call to an object via <code>%name</code> goes through the <strong>instance manager</strong> (<code>phlo()</code> in <code>/phlo/phlo.php</code>).</p>
+		<p>Example:</p>
+		<pre><code class="language-phlo">prop title = 'Welcome'
+
+route GET home =&gt; $this-&gt;main
+
+method main =&gt; view($this-&gt;home)
+
+view home:
+&lt;h1&gt;$this-&gt;title&lt;/h1&gt;</code></pre>
+		<p>When the route <code>/home</code> is called:</p>
+		<ol>
+		<li>The instance manager checks if an instance of this class already exists.  </li>
+		<li>If not, it is <strong>created and stored</strong>.  </li>
+		<li>After creation, <strong>the controller code</strong> is executed (see §8.2).  </li>
+		<li>Then the requested method is called.</li>
+		</ol><h3 id="c8.2">8.2: Controller code</h3>
+		<p>All code in a <code>.phlo</code> file that <strong>does not</strong> fall under <code>route</code>, <code>prop</code>, <code>static</code>, <code>method</code>, <code>function</code>, <code>view</code>, <code>&lt;style&gt;</code> or <code>&lt;script&gt;</code> is <strong>controller code</strong>.<br />
+This code is executed <strong>after instantiation</strong>, as soon as the instance is fully created.</p>
+		<p>Example:</p>
+		<pre><code class="language-phlo">prop ready = false
+
+%session-&gt;start()   # controller code (top-level)
+$this-&gt;ready = true</code></pre>
+		<ul>
+		<li>This code runs once during the <strong>first creation</strong> of the instance.  </li>
+		<li>The difference with <code>__construct</code> is that the instance <strong>fully exists</strong> at the moment controller code is executed → this prevents circular references and incomplete objects.</li>
+		</ul><h3 id="c8.3">8.3: The role of `__handle()`</h3>
+		<p>Phlo generates a special <code>__handle()</code> method for each class. This is called by the instance manager <strong>when an instance is requested via <code>%name</code></strong>.</p>
+		<p><code>__handle()</code>:</p>
+		<ul>
+		<li>executes the controller code if it hasn't been done yet;</li>
+		<li>ensures that props and statics are correctly available;</li>
+		<li>handles caching of the instance for subsequent calls.</li>
+		</ul>
+		<p>You do not need to call or override <code>__handle()</code> yourself — it is part of the generated class and the instance manager.</p><h3 id="c8.4">8.4: Lazy initialization</h3>
+		<p>Because controller code is executed <strong>only after construction</strong>, instances can <strong>refer to each other</strong> without unwanted recursive creation occurring.</p>
+		<p>Example:</p>
+		<pre><code class="language-phlo"># file a.phlo
+prop message = 'A ready'
+
+# file b.phlo
+prop message = 'B ready'
+
+# file main.phlo
+route GET test =&gt; $this-&gt;show
+
+method show {
+  dx(%a-&gt;message, %b-&gt;message)
+}</code></pre>
+		<ul>
+		<li><code>%a</code> and <code>%b</code> are created lazily.</li>
+		<li>The controller code in both files runs once their instance is fully created.</li>
+		<li>You can refer to each other without issues, as the instance already exists before the controller code runs.</li>
+		</ul><h3 id="c8.5">8.5: Best practices</h3>
+		<ul>
+		<li>Use controller code for <strong>initial setup</strong>, not for request-dependent logic.</li>
+		<li>Place controller code <strong>at the top</strong> or directly under props for clarity.</li>
+		<li>Avoid side effects in <code>__construct</code>; use controller code instead of custom constructors.</li>
+		<li>Let instances lazy initialize themselves via <code>%name</code> instead of manual creation.</li>
+		<li>Use controller code consciously to resolve circular references.</li>
+		</ul><h2 id="c9">9: Tooling &amp; CLI</h2>
+		<p>Phlo has a very lightweight toolchain. There is <strong>no external compiler or CLI framework</strong> needed: everything runs on the <strong>Phlo engine itself</strong> in <code>/phlo/</code>. During requests, Phlo automatically takes care of the <strong>building and updating</strong> of the generated PHP, JS, and CSS files. You can manually start this process for CI/CD or pre-release builds, but in normal setups, that is not necessary.</p><h3 id="c9.1">9.1: Build process</h3>
+		<p>Phlo transpiles <code>.phlo</code> files to PHP, JS, and CSS. This happens:</p>
+		<ul>
+		<li><strong>Automatically on changes</strong> during requests (JIT build).</li>
+		<li><strong>Optionally manually</strong>, by calling <code>phlo_build()</code> (e.g., from a script or CI).</li>
+		</ul>
+		<p>The entry points:</p>
+		<ul>
+		<li><strong><code>/www/app.php</code></strong> – central PHP entry point</li>
+		<li><strong><code>/www/app.js</code></strong> – automatically generated frontend bundle</li>
+		<li><strong><code>/www/app.css</code></strong> – automatically generated CSS bundle</li>
+		</ul>
+		<p>For each request, Phlo checks:</p>
+		<ol>
+		<li>if there are changes in the source files,</li>
+		<li>if the generated files are up-to-date,</li>
+		<li>and performs an incremental build if necessary.</li>
+		</ol><h3 id="c9.2">9.2: CLI</h3>
+		<p>Phlo does not need an external CLI framework; you can just use <code>php</code>.<br />
+For special situations (prebuilds, CI, staging) you can build manually by:</p>
+		<pre><code class="language-bash">php -r "require 'phlo/build.php'; phlo_build();"</code></pre>
+		<p>or from your own PHP script:</p>
+		<pre><code class="language-php">&lt;?php
+require 'phlo/build.php';
+phlo_build();</code></pre>
+		<p>This goes through the same build process as at runtime, but <strong>outside the request context</strong>.</p>
+		<blockquote>
+		<p>So there is no <code>phlo</code> CLI command or package. You just use PHP itself.</p>
+		</blockquote><h3 id="c9.3">9.3: Debug mode</h3>
+		<p>Debug mode is set in <code>data/app.json</code> via:</p>
+		<pre><code class="language-json">{
+  "debug": true
+}</code></pre>
+		<p>In debug mode:</p>
+		<ul>
+		<li>Errors and backtraces are displayed in the browser.</li>
+		<li>Changes to <code>.phlo</code> files are rebuilt immediately.</li>
+		<li>The debug overlay of the frontend is active (if configured).</li>
+		</ul><h3 id="c9.4">9.4: Deployment</h3>
+		<p>For production:</p>
+		<ol>
+		<li>Set <code>"debug": false</code> in <code>data/app.json</code>.</li>
+		<li>Run a manual <code>phlo_build()</code> so that all files are pre-transpiled.</li>
+		<li>Put the <code>/www/</code> folder online (including <code>app.php</code>, <code>app.js</code>, <code>app.css</code>).</li>
+		<li>Ensure that the <code>/php/</code> folder with generated backend code is moved as well.</li>
+		</ol>
+		<p>Phlo has no dependencies on npm, webpack, or other toolchains.
+All tooling is built-in and runs directly under PHP.</p><h3 id="c9.5">9.5: Best practices</h3>
+		<ul>
+		<li>Let the build process run as much as possible <strong>automatically</strong>; manual building only for release or CI.</li>
+		<li><strong>Do not change anything manually</strong> in <code>/www/app.js</code> or <code>/www/app.css</code> — these are always overwritten.</li>
+		<li>Use <code>php -r "require ...; phlo_build();"</code> for precompilation in CI.</li>
+		<li>Set <code>"debug": false</code> for production to minimize performance overhead.</li>
+		<li>Keep the <code>/phlo/</code> folder up-to-date in your deployment, as it contains the engine.</li>
+		</ul>
+		<hr />
+		<p>✅ Correct explanation of the build process (JIT + manual via <code>phlo_build()</code>)
+✅ No fake CLI commands
+✅ Debug mode as in app.json
+✅ Deployment as Phlo actually does
+✅ Correct handling of <code>/www/app.js</code> and <code>/www/app.css</code> (never change manually)</p><h2 id="c10">10: Translations</h2>
+		<p>Phlo has built-in support for <strong>multilingualism and dynamic translation</strong>. The engine includes features and libraries that allow you to <strong>translate text inline</strong>, <strong>apply language switches</strong>, and <strong>load async translations</strong> without interrupting the user experience.</p><h3 id="c10.1">10.1: Language helpers</h3>
+		<p>Phlo offers short helper functions for the most commonly used languages, which you can <strong>directly</strong> use in views and code:</p>
+		<ul>
+		<li><code>nl()</code> – Dutch</li>
+		<li><code>en()</code> – English</li>
+		<li><code>de()</code> – German</li>
+		<li><code>fr()</code> – French</li>
+		<li><code>es()</code> – Spanish</li>
+		</ul>
+		<p>Example in a view:</p>
+		<pre><code class="language-phlo">view:
+&lt;p&gt;{( nl('Hallo wereld') )}&lt;/p&gt;
+&lt;p&gt;{( en('Hello world') )}&lt;/p&gt;</code></pre>
+		<p>The language helpers:</p>
+		<ul>
+		<li><strong>directly</strong> return the string in the respective language context,</li>
+		<li>are mainly used for <strong>multilingual content blocks</strong> and static texts.</li>
+		</ul><h3 id="c10.2">10.2: Other use</h3>
+		<p>For dynamic translations, Phlo offers two core functions: <code>translate()</code> and <code>translation()</code>.</p>
+		<h3><code>translate()</code></h3>
+		<ul>
+		<li><strong>Synchronous</strong>, returns the translation of a string <strong>immediately</strong> in the current language.</li>
+		<li>Convenient for texts that are already translated in the system.</li>
+		</ul>
+		<pre><code class="language-phlo">&lt;p&gt;{( translate('welcome_message') )}&lt;/p&gt;</code></pre>
+		<hr />
+		<h3><code>translation()</code></h3>
+		<ul>
+		<li><strong>Asynchronous</strong>, intended for dynamic or not-yet-loaded translations.</li>
+		<li><strong>First</strong>, the source text is displayed, <strong>then</strong> the translation is loaded and updated in the UI.</li>
+		<li>The translation is returned in the current active language code of the app.</li>
+		</ul>
+		<pre><code class="language-phlo">&lt;p&gt;{( translation('dynamic_intro_text') )}&lt;/p&gt;</code></pre>
+		<ul>
+		<li>This prevents delays in rendering pages.</li>
+		<li>The frontend engine performs a translation request in the background and adjusts the text as soon as the translation is available.</li>
+		</ul><h3 id="c10.3">10.3: Dynamic language selection</h3>
+		<p>The active language can be dynamically set and changed via the frontend. When the user switches languages, the UI is automatically retranslated without a reload.</p>
+		<p>Typical process:</p>
+		<ol>
+		<li>App starts with a default language (e.g. <code>nl</code>).</li>
+		<li>The user selects a different language.</li>
+		<li>The frontend engine switches the language code.</li>
+		<li>Texts loaded via <code>translation()</code> are <strong>retranslated</strong> as soon as the new language is available.</li>
+		<li>Texts via helpers like <code>nl()</code> or <code>en()</code> continue to show their fixed value.</li>
+		</ol><h3 id="c10.4">10.4: Best practices</h3>
+		<ul>
+		<li>Use <strong><code>translate()</code></strong> for texts that you manage locally or statically.</li>
+		<li>Use <strong><code>translation()</code></strong> for texts that come from external sources or are loaded asynchronously.</li>
+		<li>Use language helpers (<code>nl()</code>, <code>en()</code>, …) for static content blocks or fixed view texts.</li>
+		<li>Keep your translation keys consistent and structured (e.g. <code>page.home.intro</code> instead of loose strings).</li>
+		<li>Centralize the language switch in the app so that all UI elements change consistently.</li>
+		<li>Combine translation functions with Phlo’s frontend engine for a smooth language switch without reloads.</li>
+		</ul><h2 id="c11">11: Advanced</h2>
+		<p>Phlo is designed as a modular system. You can <strong>use parts of the engine separately</strong>, combine them with existing projects, or expand with your own functionality, without having to modify the core.</p><h3 id="c11.1">11.1: Modular use</h3>
+		<p>Phlo can be used both as a <strong>complete framework</strong> and in <strong>parts</strong>.<br />
+For example:</p>
+		<ul>
+		<li>Use only the <strong>frontend engine</strong>, without the backend.  </li>
+		<li>Use only the <strong>backend transpiler</strong>, for example as a class generator or asset bundler.  </li>
+		<li>Use only specific libraries (<code>/phlo/libs</code>) in an existing PHP project.  </li>
+		<li>Use Phlo as a <strong>router + view engine</strong>, but keep your own database layer.  </li>
+		</ul>
+		<p>Example: use only the frontend in a static site  </p>
+		<pre><code class="language-html">&lt;script src="/app.js" defer&gt;&lt;/script&gt;</code></pre>
+		<p>and then call Phlo-frontend functions like <code>app.apply()</code> and <code>app.state</code> without a <code>.phlo</code> backend.  </p>
+		<p>Or: integrate Phlo into an existing PHP application and add just a few <code>.phlo</code> files in <code>sources</code>.<br />
+Phlo will then transpile them to <code>/php/</code>, after which you can use the generated classes directly.</p><h3 id="c11.2">11.2: Integration</h3>
+		<p>You can integrate Phlo into an existing codebase by:</p>
+		<ol>
+		<li>Placing the Phlo engine in a subdirectory, e.g. <code>/vendor/phlo/</code>.</li>
+		<li>Adding <code>app.php</code> as a central router for all non-existing routes.</li>
+		<li>Updating the <code>build.sources</code> field in <code>app.json</code> with the paths of your existing code, alongside the Phlo folders.</li>
+		</ol>
+		<p>Example <code>data/app.json</code>:</p>
+		<pre><code class="language-json">{
+  "id": "LegacyApp",
+  "version": ".1",
+  "host": "localhost",
+  "dashboard": "phlo",
+  "debug": true,
+  "build": {
+    "libs": ["session", "json"],
+    "sources": [
+      "%app/",
+      "/legacy/phlo/"
+    ]
+  }
+}</code></pre>
+		<p>This allows you to keep existing PHP code while still adding <code>.phlo</code> files. Phlo transpiles them and adds them to your project without needing to overhaul your entire structure.</p><h3 id="c11.3">11.3: Best practices</h3>
+		<ul>
+		<li>Keep custom commands small and reusable.</li>
+		<li>Add integration gradually; for example, start with just routing or views.</li>
+		<li>Place separate modules in <code>/phlo/libs</code> if you use them more often, instead of baking them separately.</li>
+		<li>Use <code>sources</code> to combine multiple codebases without duplication.</li>
+		<li>Test custom apply commands thoroughly in conjunction with Phlo's update mechanism.</li>
+		</ul><h2 id="c12">12: Attachments</h2>
+		<p>The attachments contain <strong>ready-made examples</strong>, <strong>project templates</strong>, and <strong>extra showcases</strong> that demonstrate how Phlo is applied in practice. This section is intended as a reference and source of inspiration — not as primary documentation.</p><h3 id="c12.1">12.1: Code examples</h3>
+		<p>A collection of small, well-readable <code>.phlo</code> fragments that illustrate commonly used patterns:</p>
+		<h3>Basic route with view</h3>
+		<pre><code class="language-phlo">prop title = 'Welcome'
+
+route GET home =&gt; $this-&gt;main
+
+method main =&gt; view($this-&gt;home)
+
+view home:
+&lt;h1&gt;$this-&gt;title&lt;/h1&gt;</code></pre>
+		<h3>Route with variable</h3>
+		<pre><code class="language-phlo">route GET user $id =&gt; $this-&gt;show($id)
+
+method show($id) {
+  $user = %users-&gt;record(id: $id)
+  view($this-&gt;profile, $user)
+}
+
+view profile($user):
+&lt;h1&gt;$user-&gt;name&lt;/h1&gt;</code></pre>
+		<h3>Async translation</h3>
+		<pre><code class="language-phlo">view:
+&lt;p&gt;{( translation('welcome_text') )}&lt;/p&gt;</code></pre><h3 id="c12.2">12.2: Project template</h3>
+		<p>A minimal project structure with all required components:</p>
+		<pre><code>/www/
+  app.php       ← central entry point
+  app.js        ← generated frontend bundle
+  app.css       ← generated CSS
+/data/
+  app.json      ← required configuration
+/phlo/          ← Phlo engine
+/php/           ← transpiled backend code (automatically)
+/app/           ← your Phlo source files (*.phlo)</code></pre>
+		<p>This is the recommended basic structure.
+Extra <code>sources</code> can be defined in <code>data/app.json</code> if you want to combine multiple source paths.</p><h3 id="c12.3">12.3: CSS Showcase</h3>
+		<p>A visual example of Phlo's compact CSS syntax:</p>
+		<p><strong>Input</strong></p>
+		<pre><code class="language-phlo">&lt;style&gt;
+html: height: 100dvh
+body {
+  background: #947b6c
+  font-family: Sans-serif
+  p: line-height: 2em
+}
+body: h1, p: \:first-letter: color: green
+h1 {
+  color: white
+  @media (max-width: 768px): color: black
+}
+p {
+  color: navy
+  \:last-child: color: yellow
+}
+&lt;/style&gt;</code></pre>
+		<p><strong>Output</strong></p>
+		<pre><code class="language-css">body {
+  background: #947b6c;
+  font-family: Sans-serif;
+}
+body h1:first-letter,
+body p:first-letter {
+  color: green;
+}
+body p {
+  line-height: 2em;
+}
+h1 {
+  color: white;
+}
+html {
+  height: 100dvh;
+}
+p {
+  color: navy;
+}
+p:last-child {
+  color: yellow;
+}
+@media (max-width: 768px){
+  h1 {
+    color: black;
+  }
+}</code></pre><h3 id="c12.4">12.4: ORM Models</h3>
+		<p>Example of a typical ORM type definition in Phlo:</p>
+		<pre><code class="language-phlo">type users {
+  static columns = null
+
+  field(id, type: number, auto: true)
+  field(name, type: text)
+  field(email, type: text)
+}
+
+route GET users =&gt; $this-&gt;overview
+
+method overview {
+  foreach (%users-&gt;records(order: 'name') as $u)
+    dx($u-&gt;id, $u-&gt;name)
+}</code></pre>
+		<p>Retrieve a single record:</p>
+		<pre><code class="language-phlo">$user = %users-&gt;record(id: 1)
+dx($user-&gt;name)</code></pre><h3 id="c12.5">12.5: Further sources</h3>
+		<ul>
+		<li><strong>phloCMS</strong> — complete CMS built on Phlo</li>
+		<li><strong>phloWS</strong> — Web Services layer</li>
+		<li><strong>phloWA</strong> — WhatsApp Gateway module</li>
+		<li><strong>demo.zip</strong> — includes among others a showcase of CSS, views, and routing</li>
+		</ul>
+	</main>
+</div>
+</body>
+</html>

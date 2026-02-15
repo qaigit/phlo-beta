@@ -1,0 +1,43 @@
+@ extends: CMS
+
+route both GET create $record $debug? {
+	if (!$model = CMS::uriRecordFind($record)) return false
+	%app->active = $model
+	$CMS = CMS($model, 'create')
+	$debug && dx($model, $CMS)
+	main($CMS, $CMS->title)
+}
+
+route both GET create $record $id $fieldName $debug? {
+	if (!($model = CMS::uriRecordFind($record)) || !($field = $model::fields()[$fieldName] ?? null) || $field->type !== 'child') return false
+	%app->active = $model
+	$CMS = CMS($model, 'record', id: $id, childField: $fieldName, childMode: 'create', hideBody: true)
+	$debug && dx($model, $CMS, $field)
+	main($CMS, $CMS->title)
+}
+
+prop mode = 'create'
+prop title => 'Nieuw: '.$this->titleRecord
+prop record => new $this->model
+
+prop actions {
+	$actions = []
+	$actions[] = button('Opslaan', form: 'form', class: 'primary')
+	return implode(lf, $actions)
+}
+
+view header:
+<header>
+	<$this->titleTag>$this->DOMtitle</$this->titleTag>
+	{{ $this->actions }}
+</header>
+
+view body:
+<form#form class="$this->mode async" action="/api/$this->uri" method=post novalidate>
+	<foreach $this->fields AS $column => $field>
+		<div.field>
+			<label>{( $field->title ?? ucfirst($column) )}</label>
+			{{ $this->field($field, $this->record, 'div') }}
+		</div>
+	</foreach>
+</form>

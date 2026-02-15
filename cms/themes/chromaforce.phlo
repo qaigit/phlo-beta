@@ -1,0 +1,13 @@
+<style ns=theme.chromaforge>
+:root {
+	$background: linear-gradient(to bottom, #0d0400, #2b0c00, #4a1d00)
+	$surface: #1a0a00
+	$primary: #ff7a00
+	$text: #fff0e0
+	$link: #ffc266
+	$row-even: #2a1200
+	$row-odd: #160800
+	$row-hover: #ff7a0029
+	$warning: #ff1e1e
+}
+</style>

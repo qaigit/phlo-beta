@@ -1,0 +1,13 @@
+<style ns=theme.aurasteel>
+:root {
+	$background: linear-gradient(to bottom, #0e1526, #1c2e4a, #2b496a)
+	$surface: #152339
+	$primary: #7eb3ff
+	$text: #e3f0ff
+	$link: #a9caff
+	$row-even: #20344f
+	$row-odd: #101b2c
+	$row-hover: #7eb3ff29
+	$warning: #ff5569
+}
+</style>

@@ -1,0 +1,18 @@
+<style ns=trans.diaphragm>
+::view-transition-group(root): background: black
+html.diaphragm {
+	main: view-transition-name: main
+	\::view-transition-old(main): animation: 200ms linear iris-close both
+	\::view-transition-old(main): z-index: 2
+	\::view-transition-new(main): animation: 200ms linear 200ms iris-open both
+	\::view-transition-new(main): z-index: 1
+}
+@keyframes iris-close {
+	0%: clip-path: circle(90% at 50% 50%)
+	100%: clip-path: circle(0% at 50% 50%)
+}
+@keyframes iris-open {
+	0%: clip-path: circle(0% at 50% 50%)
+	100%: clip-path: circle(90% at 50% 50%)
+}
+</style>

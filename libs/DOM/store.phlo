@@ -1,0 +1,256 @@
+@ version:     1.1
+@ creator:     q-ai.nl
+@ description: Statefull/binding engine
+
+<script>
+phlo.store = {
+	signals: {},
+	listeners: {},
+	calcs: {},
+	calcDeps: {},
+	calcVals: {},
+	calcTick: false,
+	split: (path) => path.replace(/\]/g, '').split(/\.|\[/),
+	get(path){
+		if (!path) return undefined
+		let ctx = phlo.store.signals
+		const keys = phlo.store.split(path)
+		for (let i = 0; i < keys.length; i++){
+			if (ctx == null) return undefined
+			ctx = ctx[keys[i]]
+		}
+		return ctx
+	},
+	setPath(path, value){
+		let keys = phlo.store.split(path)
+		let ctx = phlo.store.signals
+		while (keys.length > 1){
+			const k = keys.shift()
+			ctx[k] ??= isNaN(keys[0]) ? {} : []
+			ctx = ctx[k]
+		}
+		const k = keys[0]
+		const old = ctx[k]
+		if (old === value) return false
+		ctx[k] = value
+		return true
+	},
+	set(path, value){
+		if (!phlo.store.setPath(path, value)) return
+		phlo.store.notify(path, phlo.store.get(path))
+		phlo.store.recalc(path)
+		phlo.store.schedule()
+	},
+	on(path, cb){ (phlo.store.listeners[path] ??= new Set).add(cb) },
+	off(path, cb){ phlo.store.listeners[path] && phlo.store.listeners[path].delete(cb) },
+	reset(){
+		phlo.store.signals = {}
+		phlo.store.listeners = {}
+		phlo.store.calcs = {}
+		phlo.store.calcDeps = {}
+		phlo.store.calcVals = {}
+		phlo.store.calcTick = false
+	},
+	signal(path, initial){
+		if (phlo.store.get(path) === undefined) phlo.store.set(path, initial)
+		return { subscribe: (cb) => phlo.store.on(path, cb), unsubscribe: (cb) => phlo.store.off(path, cb) }
+	},
+	notify(path, val){
+		const set = phlo.store.listeners[path]
+		if (set) set.forEach(cb => cb(val))
+	},
+	match(dep, changed){
+		if (!dep) return false
+		if (dep === changed) return true
+		return changed.startsWith(dep + '.') || changed.startsWith(dep + '[') || dep.startsWith(changed + '.') || dep.startsWith(changed + '[')
+	},
+	depsReady(list){
+		const arr = Array.isArray(list) ? list : (list ? [list] : [])
+		return arr.every(d => phlo.store.get(d) !== undefined)
+	},
+	evalCalc(name){
+		const fn = phlo.store.calcs[name]
+		if (!fn) return
+		let deps = []
+		let val
+		try {
+			const out = fn()
+			if (Array.isArray(out) && out.length === 2) deps = out[0], val = out[1]
+			else val = out
+		}
+		catch(e){
+			deps = []
+			val = undefined
+		}
+		const list = Array.isArray(deps) ? deps : (deps ? [deps] : [])
+		phlo.store.calcDeps[name] = list
+		if (!phlo.store.depsReady(list)) return
+		const old = phlo.store.calcVals[name]
+		if (old !== val){
+			phlo.store.calcVals[name] = val
+			const p = `calc.${name}`
+			phlo.store.setPath(p, val)
+			phlo.store.notify(p, val)
+		}
+	},
+	recalc(changed){
+		const names = Object.keys(phlo.store.calcs)
+		for (let i = 0; i < names.length; i++){
+			const name = names[i]
+			const deps = phlo.store.calcDeps[name] || []
+			for (let j = 0; j < deps.length; j++){
+				if (phlo.store.match(deps[j], changed)){
+					phlo.store.evalCalc(name)
+					break
+				}
+			}
+		}
+	},
+	recalcAll(){
+		const names = Object.keys(phlo.store.calcs)
+		for (let i = 0; i < names.length; i++) phlo.store.evalCalc(names[i])
+	},
+	schedule(){
+		if (phlo.store.calcTick) return
+		phlo.store.calcTick = true
+		setTimeout(() => {
+			phlo.store.calcTick = false
+			phlo.store.recalcAll()
+		})
+	},
+	proxy(base){
+		return new Proxy({}, {
+			get(t, k){
+				if (typeof k === 'symbol') return undefined
+				const seg = /^\d+$/.test(k) ? `[${k}]` : (base ? `.${k}` : String(k))
+				const path = base + seg
+				const v = phlo.store.get(path)
+				if (v !== undefined && (typeof v !== 'object' || v === null)) return v
+				return phlo.store.proxy(path)
+			},
+			set(t, k, v){
+				const seg = /^\d+$/.test(k) ? `[${k}]` : (base ? `.${k}` : String(k))
+				phlo.store.set(base + seg, v)
+				return true
+			},
+			has(t, k){ return phlo.store.get(base + (base ? '.' : '') + String(k)) !== undefined },
+			ownKeys(){ return Object.keys(phlo.store.get(base) || {}) },
+			getOwnPropertyDescriptor(){ return { enumerable: true, configurable: true } }
+		})
+	}
+}
+
+app.store = phlo.store.proxy('')
+
+app.mod.store = (key, value) => {
+	const cur = phlo.store.get(key)
+	if (JSON.stringify(cur) === JSON.stringify(value)) return
+	const walk = (base, obj) => {
+		if (typeof obj !== 'object' || obj === null) return phlo.store.set(base, obj)
+		Object.entries(obj).forEach(([k, v]) => walk(isNaN(k) ? `${base}.${k}` : `${base}[${k}]`, v))
+	}
+	walk(key, value)
+}
+
+phlo.calc = new Proxy({}, {
+	set(t, k, fn){
+		if (typeof fn !== 'function') return false
+		phlo.store.calcs[k] = fn
+		phlo.store.evalCalc(k)
+		setTimeout(() => phlo.store.evalCalc(k))
+		return true
+	},
+	get(t, k){ return phlo.store.calcs[k] },
+	has(t, k){ return k in phlo.store.calcs },
+	deleteProperty(t, k){
+		delete phlo.store.calcs[k]
+		delete phlo.store.calcDeps[k]
+		delete phlo.store.calcVals[k]
+		return true
+	}
+})
+
+app.calc = new Proxy({}, {
+	get(t, k){ return phlo.store.calcVals[k] },
+	has(t, k){ return k in phlo.store.calcVals },
+	ownKeys(){ return Object.keys(phlo.store.calcVals) },
+	getOwnPropertyDescriptor(){ return { enumerable: true, configurable: true } }
+})
+
+onExist('[data-bind]', (el) => {
+	const key = el.dataset.bind
+	const isCalc = key.startsWith('calc.')
+	const isInput = el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA'
+	const fromDom = isInput ? el.value : el.textContent
+	const fromStore = phlo.store.get(key)
+	const domNonEmpty = (fromDom ?? '').trim() !== ''
+	const storeEmpty = fromStore === undefined || (typeof fromStore === 'string' && fromStore.trim() === '')
+	const domLeads = !isCalc && domNonEmpty && storeEmpty
+	const S = (v) => v == null ? '' : (typeof v === 'object' ? '' : String(v))
+	const apply = (v) => {
+		const s = S(v)
+		if (isInput) el.value = s
+		else el.textContent = s
+	}
+	phlo.store.on(key, apply)
+	if (domLeads) phlo.store.set(key, fromDom)
+	const initial = domLeads ? fromDom : fromStore
+	apply(initial)
+	if (!isCalc && isInput) el.oninput = (e) => phlo.store.set(key, e.target.value)
+})
+
+onExist('[data-bind-attr]', (el) => {
+	const spec = el.getAttribute('data-bind-attr')
+	if (!spec) return
+	const BOOL = new Set(['disabled','checked','hidden','required','readonly','selected','autofocus','multiple'])
+	let meta = phlo.existing.get(el)
+	if (!meta || typeof meta !== 'object'){
+		meta = { exist: true }
+		phlo.existing.set(el, meta)
+	}
+	meta.attr || (meta.attr = {})
+	meta.attr.cls || (meta.attr.cls = [])
+	spec.split(/\s*,\s*/).filter(Boolean).forEach(pair => {
+		const m = pair.match(/^\s*([^:]+)\s*:\s*(.+)\s*$/)
+		if (!m) return
+		const name = m[1]
+		const path = m[2]
+		const isCalc = path.startsWith('calc.')
+		const isInputVal = name === 'value' && (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA')
+		const domVal =
+			name === 'text' ? el.textContent :
+			name === 'html' ? el.innerHTML :
+			name === 'value' ? el.value :
+			(name === 'class' ? null : el.getAttribute(name))
+		const fromStore = phlo.store.get(path)
+		const domNonEmpty = (domVal ?? '').trim() !== ''
+		const storeEmpty = fromStore === undefined || (typeof fromStore === 'string' && fromStore.trim() === '')
+		const domLeads = !isCalc && name !== 'class' && domNonEmpty && storeEmpty
+		const S = (v) => v == null ? '' : (typeof v === 'object' ? '' : String(v))
+		const apply = (v) => {
+			if (name === 'text') el.textContent = S(v)
+			else if (name === 'html') app.mod.inner(el, S(v))
+			else if (name === 'value') app.mod.value(el, S(v))
+			else if (name === 'class'){
+				const next = Array.isArray(v) ? v : (v && typeof v === 'object') ? Object.keys(v).filter(k => v[k]) : String(v ?? '').split(/\s+/)
+				const uniq = [...new Set(next.filter(Boolean))]
+				const prev = meta.attr.cls
+				for (let i = 0; i < prev.length; i++) el.classList.remove(prev[i])
+				for (let i = 0; i < uniq.length; i++) el.classList.add(uniq[i])
+				meta.attr.cls = uniq
+			}
+			else if (BOOL.has(name)){
+				const on = !!v
+				app.mod.attr(el, { [name]: on ? '' : null })
+				if (name in el) el[name] = on
+			}
+			else app.mod.attr(el, { [name]: S(v) })
+		}
+		phlo.store.on(path, apply)
+		if (domLeads) phlo.store.set(path, domVal)
+		const initial = domLeads ? domVal : fromStore
+		apply(initial)
+		if (!isCalc && isInputVal) el.oninput = (e) => phlo.store.set(path, e.target.value)
+	})
+})
+</script>

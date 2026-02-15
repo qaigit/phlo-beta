@@ -1,0 +1,13 @@
+<style ns=theme.plasmashift>
+:root {
+	$background: linear-gradient(to bottom, #050018, #10104a, #3b0f70)
+	$surface: #120a2a
+	$primary: #7c3aed
+	$text: #ede9ff
+	$link: #a855f7
+	$row-even: #1a1040
+	$row-odd: #0b061e
+	$row-hover: #7c3aed29
+	$warning: #f97373
+}
+</style>

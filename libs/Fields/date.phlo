@@ -1,0 +1,9 @@
+@ extends:     field
+@ class:       field_date
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: CMS date field
+
+prop handle = true
+
+method sql => "`$this->name` DATE unsigned"

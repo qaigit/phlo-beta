@@ -1,0 +1,66 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: Database engine class
+@ type:        abstract class
+
+prop PDO => error('No PDO connector defined')
+prop fieldQuotes = bt
+
+method load(string $table, string $columns = '*', string $where = void, string $joins = void, string $group = void, string $limit = void, string $order = void, ...$args){
+	$table = strpos($table, space) || strpos($table, dot) ? $table : "$this->fieldQuotes$table$this->fieldQuotes"
+	!$where && $args && $where = loop(array_keys($args), fn($column) => "$table.$column=?", ' AND ')
+	$joins && $joins = " $joins"
+	$where && $where = " WHERE $where"
+	$group && $group = " GROUP BY $group"
+	$order && $order = " ORDER BY $order"
+	$limit && $limit = " LIMIT $limit"
+	$query = "SELECT $columns FROM $table$joins$where$group$order$limit"
+	return $this->query($query, ...array_values($args))
+}
+
+method query($query, ...$args){
+	try {
+		if (!$args) $stmt = $this->PDO->query($query)
+		else {
+			$stmt = $this->PDO->prepare($query)
+			$stmt->execute($args)
+		}
+		if (debug){
+			$match = regex('/\b(UPDATE|INSERT INTO|DELETE FROM|FROM)\b\s+([`"\[]?\w+[`"\]]?)/i', strtr($query, [$this->fieldQuotes => void]))
+			$where = strtr(regex('/\bWHERE (\b.+)/is', $query)[1] ?? void, [' ORDER BY' => void])
+			$match && debug("Q: $match[1] $match[2]".strtr(rtrim(" $where "), [dq => void])." (".$stmt->rowCount().")")
+		}
+	}
+	catch (PDOException $e){
+		error('Database error'.(debug ? colon.lf.$query.lf.lf.$e->getMessage() : void))
+	}
+	return $stmt
+}
+
+method column(...$args) => $this->load(...$args)->fetchAll(PDO::FETCH_COLUMN)
+method item(...$args) => $this->load(...$args)->fetch(PDO::FETCH_COLUMN) ?: null
+method pair(...$args) => $this->load(...$args)->fetchAll(PDO::FETCH_KEY_PAIR)
+method group(...$args) => $this->load(...$args)->fetchAll(PDO::FETCH_GROUP|PDO::FETCH_CLASS, 'obj')
+method records(...$args) => $this->load(...$args)->fetchAll(PDO::FETCH_CLASS|PDO::FETCH_UNIQUE, 'obj')
+method record(...$args) => $this->load(...$args)->fetchObject('obj') ?: null
+
+method create(string $table, ...$data){
+	if ($ignore = $data['ignore'] ?? false) unset($data['ignore'])
+	$columns = $this->fieldQuotes.implode($this->fieldQuotes.comma.$this->fieldQuotes, array_keys($data)).$this->fieldQuotes
+	$values = implode(comma, array_fill(0, count($data), qm))
+	$query = "INSERT".($ignore ? ' IGNORE' : void)." INTO $table ($columns) VALUES ($values)"
+	$this->query($query, ...array_values(loop($data, fn($value) => is_a($value, 'obj') ? $value->id : $value)))
+	return $this->PDO->lastInsertId() ?: ($data['id'] ?? null)
+}
+
+method change(string $table, string $where, ...$data){
+	$whereCount = substr_count($where, qm)
+	$updates = isset($data['updates']) ? $data['updates'] : void
+	unset($data['updates'])
+	$updates .= (($wheres = array_slice(array_keys($data), $whereCount)) && $updates ? comma : void).loop($wheres, fn($key) => $key.'=?', comma)
+	$query = "UPDATE $table SET $updates WHERE $where"
+	$args = array_values([...array_slice($data, $whereCount), ...array_slice($data, 0, $whereCount)])
+	return $this->query($query, ...$args)->rowCount()
+}
+
+method delete(string $table, string $where, ...$args) => $this->query("DELETE FROM $table WHERE $where", ...$args)->rowCount()

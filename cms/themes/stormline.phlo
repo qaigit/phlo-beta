@@ -1,0 +1,13 @@
+<style ns=theme.stormline>
+:root {
+	$background: linear-gradient(to bottom, #020617, #0b1120, #1f2933)
+	$surface: #0b1220
+	$primary: #38bdf8
+	$text: #e5f2ff
+	$link: #7dd3fc
+	$row-even: #111827
+	$row-odd: #070b16
+	$row-hover: #38bdf829
+	$warning: #f97373
+}
+</style>

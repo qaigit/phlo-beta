@@ -1,0 +1,13 @@
+<style ns=theme.neonserpent>
+:root {
+	$background: linear-gradient(160deg, #010007, #021410, #072b24, #1a0030)
+	$surface: #050b13
+	$primary: #32ff9c
+	$text: #e8fff4
+	$link: #ff7cf7
+	$row-even: #0b1521
+	$row-odd: #03070c
+	$row-hover: #32ff9c29
+	$warning: #ff3c6e
+}
+</style>

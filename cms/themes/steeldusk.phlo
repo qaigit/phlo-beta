@@ -1,0 +1,13 @@
+<style ns=theme.steeldusk>
+:root {
+	$background: linear-gradient(to bottom, #1E293B 0%, #27394E 50%, #3C4C61 100%)
+	$surface: #2A3647
+	$primary: #3B82F6
+	$text: #F1F5F9
+	$link: #60A5FA
+	$row-even: #324356
+	$row-odd: #2A3647
+	$row-hover: #3B82F629
+	$warning: #EF4444
+}
+</style>

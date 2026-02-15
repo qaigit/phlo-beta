@@ -1,0 +1,13 @@
+<style ns=theme.quantumrift>
+:root {
+	$background: linear-gradient(to bottom, #00040f, #000e2b, #001946)
+	$surface: #001024
+	$primary: #8b5cf6
+	$text: #ece9ff
+	$link: #c4b5fd
+	$row-even: #071633
+	$row-odd: #030817
+	$row-hover: #8b5cf629
+	$warning: #ff4c4c
+}
+</style>

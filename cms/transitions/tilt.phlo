@@ -1,0 +1,49 @@
+<style ns=trans.tilt>
+html.tilt {
+	main: view-transition-name: main
+	\::view-transition-old(main): animation: 250ms ease-in tilt-out both
+	\::view-transition-new(main): animation: 250ms ease-in tilt-in both
+	\.back::view-transition-old(main): animation: 250ms ease-in tilt-out-reverse both
+	\.back::view-transition-new(main): animation: 250ms ease-in tilt-in-reverse both
+}
+@keyframes tilt-out {
+	0% {
+		opacity: 1
+		transform: rotateZ(0deg) translateY(0)
+	}
+	100% {
+		opacity: 0
+		transform: rotateZ(5deg) translateY(-20px)
+	}
+}
+@keyframes tilt-in {
+	0% {
+		opacity: 0
+		transform: rotateZ(-5deg) translateY(20px)
+	}
+	100% {
+		opacity: 1
+		transform: rotateZ(0deg) translateY(0)
+	}
+}
+@keyframes tilt-out-reverse {
+	0% {
+		opacity: 1
+		transform: rotateZ(0deg) translateY(0)
+	}
+	100% {
+		opacity: 0
+		transform: rotateZ(-5deg) translateY(-20px)
+	}
+}
+@keyframes tilt-in-reverse {
+	0% {
+		opacity: 0
+		transform: rotateZ(5deg) translateY(20px)
+	}
+	100% {
+		opacity: 1
+		transform: rotateZ(0deg) translateY(0)
+	}
+}
+</style>

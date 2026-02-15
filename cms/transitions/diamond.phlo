@@ -1,0 +1,30 @@
+<style ns=trans.diamond>
+::view-transition-group(root): background: black
+html.diamond {
+	main: view-transition-name: main
+	\::view-transition-old(main): animation: 260ms ease diamond-out both
+	\::view-transition-new(main): animation: 260ms ease 60ms diamond-in both
+	\.back::view-transition-old(main): animation: 260ms ease diamond-out-reverse both
+	\.back::view-transition-new(main): animation: 260ms ease 60ms diamond-in-reverse both
+}
+
+@keyframes diamond-out {
+	0%: clip-path: polygon(50% -50%,150% 50%,50% 150%,-50% 50%)
+	100%: clip-path: polygon(50% 50%,50% 50%,50% 50%,50% 50%)
+}
+
+@keyframes diamond-in {
+	0%: clip-path: polygon(50% 50%,50% 50%,50% 50%,50% 50%)
+	100%: clip-path: polygon(50% -50%,150% 50%,50% 150%,-50% 50%)
+}
+
+@keyframes diamond-out-reverse {
+	0%: clip-path: polygon(50% -50%,150% 50%,50% 150%,-50% 50%)
+	100%: clip-path: polygon(50% 50%,50% 50%,50% 50%,50% 50%)
+}
+
+@keyframes diamond-in-reverse {
+	0%: clip-path: polygon(50% 50%,50% 50%,50% 50%,50% 50%)
+	100%: clip-path: polygon(50% -50%,150% 50%,50% 150%,-50% 50%)
+}
+</style>

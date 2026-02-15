@@ -1,0 +1,13 @@
+<style ns=theme.fira>
+:root {
+	$background: #1a0000
+	$surface: #3b0000
+	$primary: #ff3c00
+	$text: #fff0e0
+	$link: #ff7043
+	$row-even: #4d0000
+	$row-odd: #2b0000
+	$row-hover: #ff3c0029
+	$warning: #ff1e00
+}
+</style>

@@ -1,0 +1,13 @@
+<style ns=theme.limepulse>
+:root {
+	$background: #0a0a0a
+	$surface: #1a1a1a
+	$primary: #13bd19
+	$text: #e6ffe6
+	$link: #ccff33
+	$row-even: #121212
+	$row-odd: #0f0f0f
+	$row-hover: #ccff3329
+	$warning: #ff4444
+}
+</style>

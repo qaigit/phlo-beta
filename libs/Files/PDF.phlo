@@ -1,0 +1,35 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: PDF generator en reader
+
+static toText(string $file):string {
+	$process = proc_open('pdftotext '.escapeshellarg($file).' -', [['pipe', 'r'], ['pipe', 'w'], ['pipe', 'w']], $pipes)
+	if (!is_resource($process)) return null
+	fclose($pipes[0])
+	$text = stream_get_contents($pipes[1])
+	fclose($pipes[1])
+	$error = stream_get_contents($pipes[2])
+	fclose($pipes[2])
+	($code = proc_close($process)) && error("PDFToText Error: pdftotext command failed with code $code. Error: $error")
+	return rtrim($text, "\f")
+}
+
+prop title = null
+prop author = null
+prop subject = null
+prop keywords = null
+prop creator = 'Phlo '.phlo.' (https://phlo.tech/)'
+
+prop filename = 'Download.pdf'
+prop mode = 'D'
+
+method fromHTML($HTML){
+	$mpdf = new \Mpdf\Mpdf
+	$this->title && $mpdf->SetTitle($this->title)
+	$this->author && $mpdf->SetAuthor($this->author)
+	$this->subject && $mpdf->SetSubject($this->subject)
+	$this->keywords && $mpdf->SetKeywords($this->keywords)
+	$this->creator && $mpdf->SetCreator($this->creator)
+	$mpdf->WriteHTML($HTML)
+	return $mpdf->Output($this->filename, $this->mode)
+}

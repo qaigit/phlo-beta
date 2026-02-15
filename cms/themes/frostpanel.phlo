@@ -1,0 +1,13 @@
+<style ns=theme.frostpanel>
+:root {
+	$background: #eef5ff
+	$surface: #ffffff
+	$primary: #3b82f6
+	$text: #1e293b
+	$link: #2563eb
+	$row-even: #dbeafe
+	$row-odd: #f0f7ff
+	$row-hover: #3b82f629
+	$warning: #e11d48
+}
+</style>

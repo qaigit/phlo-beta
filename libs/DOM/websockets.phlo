@@ -1,0 +1,22 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: Clientside WebSocket handler
+
+<script>
+app.websocket = {
+	get open(){
+		app.options.contains('wss') && delay('websocket', app.websocket.retry, () => {
+			phlo.wss?.close()
+			phlo.wss = new WebSocket(`wss://${location.host}/${app.websocket.path}`)
+			phlo.wss.onmessage = e => [{trans, state, ...cmds} = JSON.parse(e.data), apply(cmds, trans, state)]
+			phlo.wss.onopen = e => [(cb = app.websocket.connect) && cb(e), phlo.log('🖧 Websocket connected', e), app.websocket.retry = 333]
+			phlo.wss.onerror = e => [(cb = app.websocket.error) && cb(e), phlo.log('🖧 Websocket error', e)]
+			phlo.wss.onclose = e => [(cb = app.websocket.close) && cb(e), phlo.log('🖧 Websocket close', e), app.websocket.retry && [app.websocket.open, app.websocket.retry *= 3]]
+		})
+	},
+	path: 'websocket',
+	send: data => phlo.wss?.readyState === 1 ? [phlo.log('🖧 app.websocket.send', '\n', data), phlo.wss.send(JSON.stringify(data))] : phlo.error('🖧 Could not send websocket data over closed socket'),
+	retry: 333,
+}
+app.websocket.open
+</script>

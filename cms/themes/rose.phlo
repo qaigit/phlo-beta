@@ -1,0 +1,13 @@
+<style ns=theme.rose>
+:root {
+	$background: #fff1f2
+	$surface: #f8d7da
+	$primary: #e91e63
+	$text: #880e4f
+	$link: #f06292
+	$row-even: #fce4ec
+	$row-odd: #fff1f2
+	$row-hover: #e91e6329
+	$warning: #c2185b
+}
+</style>

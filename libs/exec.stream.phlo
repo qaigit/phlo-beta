@@ -1,0 +1,53 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: Stream shell output cmd via yielding
+
+function exec_stream(string $cmd, ?int $timeoutSec = 0){
+	$desc = [0 => ['pipe','r'], 1 => ['pipe','w'], 2 => ['pipe','w']]
+	$proc = proc_open($cmd, $desc, $pipes)
+	if (!is_resource($proc)) return
+	stream_set_blocking($pipes[1], false)
+	stream_set_blocking($pipes[2], false)
+	$bufOut = void
+	$bufErr = void
+	while (true){
+		$status = proc_get_status($proc)
+		$running = $status['running']
+		$read = []
+		$w = null
+		$e = null
+		if (!feof($pipes[1])) $read[] = $pipes[1]
+		if (!feof($pipes[2])) $read[] = $pipes[2]
+		if ($read) @stream_select($read, $w, $e, 0, 200000)
+		foreach ($read AS $r){
+			$chunk = fread($r, 8192)
+			if ($chunk === void || $chunk === false) continue
+			if ($r === $pipes[1]){
+				$bufOut .= $chunk
+				while (($pos = strpos($bufOut, lf)) !== false){
+					$line = substr($bufOut, 0, $pos)
+					$bufOut = substr($bufOut, $pos + 1)
+					yield obj(data: $line)
+				}
+			}
+			else {
+				$bufErr .= $chunk
+				while (($pos = strpos($bufErr, lf)) !== false){
+					$line = substr($bufErr, 0, $pos)
+					$bufErr = substr($bufErr, $pos + 1)
+					yield obj(data: $line, error: true)
+				}
+			}
+		}
+		if (!$running) break
+		if ($timeoutSec > 0 && ($status['running_time'] ?? 0) > $timeoutSec){
+			proc_terminate($proc)
+			yield obj(data: 'process timeout', error: true)
+			break
+		}
+	}
+	if ($bufOut !== void) yield obj(data: $bufOut)
+	if ($bufErr !== void) yield obj(data: $bufErr, error: true)
+	foreach ($pipes AS $p) @fclose($p)
+	proc_close($proc)
+}

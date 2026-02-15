@@ -1,0 +1,13 @@
+<style ns=theme.neon>
+:root {
+	$background: #000000
+	$surface: #1a1a1a
+	$primary: #00ffea
+	$text: #f0f0f0
+	$link: #39ff14
+	$row-even: #222222
+	$row-odd: #1f1f1f
+	$row-hover: #39ff1429
+	$warning: #ff073a
+}
+</style>

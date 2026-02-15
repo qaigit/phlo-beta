@@ -1,0 +1,86 @@
+route both GET $list $token => !str_contains($token, eq) && ($model = CMS::uriListFind($list)) && $this->fromBI(token: $token)
+route async POST bi @q {
+	trim(%payload->q) || error('Geef aan wat je zoekt')
+	($search = array_filter(loop($this->searches->objData, fn($search, $token) => $search['title'] === %payload->q ? $search : null))) && ($token = key($search)) && $this->fromBI($search[$token], $token)
+	$token = token(input: %payload->q)
+	$res = $this->searches->$token ??= array_filter(json_decode(%OpenAI->chat(model: 'gpt-4o', user: $this->prompt(loop(%app->models, fn($model) => "Model: $model:\n".$model::createTable(), lf.lf), %payload->q), temperature: 0, response_format: arr(type: 'json_object'))->answer, true))
+	$this->fromBI($res, $token)
+}
+
+prop searches => %JSON('bi', assoc: true)
+
+method fromBI($res = null, $token = null){
+	$res ??= first($this->searches->$token, $this->searches->$token['usage'] = ($this->searches->$token['usage'] ?? 0) + 1, $this->searches->objChanged = true)
+	%app->active = $res['model']
+	$title = $res['title']
+	$model = $res['model']
+	unset($res['title'], $res['model'], $res['usage'])
+	$res = array_filter($res)
+	$res['limit'] ??= 500
+	$CMS = CMS($model, 'list', records: $model::records(...$res))
+	$CMS->title = $title
+	main($CMS, $CMS->title, uri: "$CMS->uri/$token")
+}
+
+view:
+<form#bi.async action=/bi method=post autocomplete=off>
+	<button#speak.icon.microphone type=button autofocus/>
+	<input.field.full type=text name=q list=searches placeholder="Omschrijf wat je wilt weten">
+	{{ $this->datalist }}
+	<button>&gt;</button>
+</form>
+
+view datalist {
+	$searches = $this->searches->objData
+	uasort($searches, fn($a, $b) => ($b['usage'] ?? 0) <=> ($a['usage'] ?? 0))
+	$options = loop($searches, fn($search, $token) => tag('option', value: $search['title'], data_uri: ($search['model']::$uriList ?? $search['model']::$table).slash.$token), lf)
+	return tag('datalist', id: 'searches', inner: indentView("\n$options\n"))
+}
+
+view prompt($struct, $q):
+Je bent een BI operator die in staat is exact de gevraagde informatie terug te leveren om queries op te bouwen.
+Hieronder volgt een table structuur in MySQL. Geef de gevraagde velden om een geldige query op te kunnen bouwen.
+Verzin nooit kolommen die niet in de structuur genoemd worden!!
+Vraag:
+--
+$q
+--
+Geef alleen een JSON object terug.
+{{ void }}
+Geef de volgende waarden:
+-title (titel die kort omschrijft waar er naar gezocht wordt)
+-model (niet te verwarren met de table name, deze is singular!!)
+-where (optioneel, het deel na " WHERE ")
+-joins (optioneel; string)
+-order (optioneel, het deel na " ORDER BY ")
+-group (optioneel, het deel na " GROUP BY ")
+-limit (optioneel, het deel na " LIMIT ")
+{{ void }}
+Structuur:
+{{ void }}
+$struct
+Het is momenteel {{ date('j-n-Y H:i') }}.
+
+<script>
+const recognition = window.webkitSpeechRecognition ? new webkitSpeechRecognition : null
+if (recognition){
+	recognition.lang = obj('html').lang+'-'+obj('html').lang.toUpperCase()
+	recognition.interimResults = true
+	recognition.onresult = (e) => obj('#bi input').value = Array.from(e.results).map(result => result[0].transcript).join('')
+	recognition.onend = (e) => obj('#bi input').value && obj('#bi').requestSubmit()
+}
+else app.mod.delete('#speak')
+on('click', '#speak', () => recognition.start())
+on('click', '#bi input', (input) => input.value = '')
+on('change', '#bi input', (input) => (index = Array.from(searches.options).map(opt => opt.value).indexOf(input.value)) >= 0 && app.get(searches.options[index].dataset.uri))
+</script>
+
+<style>
+form#bi {
+	background: $surface
+	border-radius: 9px
+	display: flex
+	margin: 1rem 0
+	i: cursor: pointer
+}
+</style>

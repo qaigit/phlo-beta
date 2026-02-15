@@ -1,0 +1,13 @@
+<style ns=theme.midnightcode>
+:root {
+	$background: linear-gradient(to bottom, #0F2027, #203A43, #2C5364)
+	$surface: #1A2A32
+	$primary: #2C5364
+	$text: #DCEAF5
+	$link: #00B7FF
+	$row-even: #1F3541
+	$row-odd: #192B36
+	$row-hover: #00B7FF29
+	$warning: #FF3C38
+}
+</style>

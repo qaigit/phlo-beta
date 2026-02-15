@@ -1,0 +1,13 @@
+<style ns=theme.creamsicle>
+:root {
+	$background: #fff3e0
+	$surface: #ffe0b2
+	$primary: #ff9800
+	$text: #4e342e
+	$link: #fb8c00
+	$row-even: #ffcc80
+	$row-odd: #ffe0b2
+	$row-hover: #ff980029
+	$warning: #e65100
+}
+</style>

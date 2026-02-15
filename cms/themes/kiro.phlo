@@ -1,0 +1,13 @@
+<style ns=theme.kiro>
+:root {
+	$background: #140c36
+	$surface: #341a65
+	$primary: #fc0fc0
+	$text: #ffffff
+	$link: #ff7fff
+	$row-even: #2a1250
+	$row-odd: #1b0935
+	$row-hover: #fc0fc029
+	$warning: #ff0033
+}
+</style>

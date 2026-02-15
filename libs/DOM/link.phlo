@@ -1,0 +1,16 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: Single Page App link.async handler
+
+<script>
+on('click', 'a', (a, e) => {
+	if (e.ctrlKey || e.shiftKey || e.metaKey || a.dataset.confirm) return false
+	if (a.hostname && a.hostname !== location.hostname) return false
+	const isAsync = a.classList.contains('async')
+	const [uri, hash] = a.getAttribute('href').split('#')
+	if (isAsync || hash) e.preventDefault()
+	phlo.anchor = hash ? `#${hash}` : ''
+	if (hash && (!uri || uri === location.pathname + location.search)) location.hash = phlo.anchor
+	else if (isAsync) app.get(uri.substr(1))
+})
+</script>

@@ -1,0 +1,13 @@
+<style ns=theme.blush>
+:root {
+	$background: #fff0f5
+	$surface: #f8bbd0
+	$primary: #ec407a
+	$text: #880e4f
+	$link: #d81b60
+	$row-even: #fce4ec
+	$row-odd: #f8bbd0
+	$row-hover: #ec407a29
+	$warning: #c2185b
+}
+</style>

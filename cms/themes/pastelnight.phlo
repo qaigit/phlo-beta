@@ -1,0 +1,13 @@
+<style ns=theme.pastelnight>
+:root {
+	$background: #0e0e14
+	$surface: #1a1a22
+	$primary: #ffbad2
+	$text: #ffeaf3
+	$link: #ffd2e6
+	$row-even: #24242f
+	$row-odd: #14141b
+	$row-hover: #ffbad229
+	$warning: #ff4a6b
+}
+</style>

@@ -1,0 +1,13 @@
+<style ns=theme.hypervoid>
+:root {
+	$background: linear-gradient(to bottom, #000000, #050505, #0a0a0a)
+	$surface: #0f0f0f
+	$primary: #00f6ff
+	$text: #e8feff
+	$link: #6fffff
+	$row-even: #151515
+	$row-odd: #0b0b0b
+	$row-hover: #00f6ff29
+	$warning: #ff3860
+}
+</style>

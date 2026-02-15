@@ -1,0 +1,13 @@
+<style ns=theme.sola>
+:root {
+	$background: #fffbe6
+	$surface: #fff0b3
+	$primary: #ffdd33
+	$text: #3e3e00
+	$link: #ffaa00
+	$row-even: #fff6cc
+	$row-odd: #fffde0
+	$row-hover: #ffdd3329
+	$warning: #d84315
+}
+</style>

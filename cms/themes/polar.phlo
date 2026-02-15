@@ -1,0 +1,13 @@
+<style ns=theme.polar>
+:root {
+	$background: #eceff1
+	$surface: #cfd8dc
+	$primary: #90a4ae
+	$text: #263238
+	$link: #607d8b
+	$row-even: #cfd8dc
+	$row-odd: #eceff1
+	$row-hover: #90a4ae29
+	$warning: #d32f2f
+}
+</style>

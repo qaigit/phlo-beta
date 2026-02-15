@@ -1,0 +1,13 @@
+<style ns=theme.arcticnight>
+:root {
+	$background: linear-gradient(to bottom, #020817, #061a33, #0a2b4d)
+	$surface: #0a1624
+	$primary: #7dd3fc
+	$text: #e2f5ff
+	$link: #bae6fd
+	$row-even: #12273c
+	$row-odd: #07111d
+	$row-hover: #7dd3fc29
+	$warning: #ff4060
+}
+</style>

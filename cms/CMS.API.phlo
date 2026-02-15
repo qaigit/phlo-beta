@@ -1,0 +1,100 @@
+route async POST api $record {
+	if (!$this->model = CMS::uriRecordFind($record)) return false
+	$this->record = phlo($this->model, ...%payload)
+	$this->applySave
+	location(slash.($this->model::$uriRecord ?? $this->model).slash.$this->record->id)
+}
+
+route async POST api $record $id $fieldName {
+	if (!($parent = CMS::uriRecordFind($record)) || !($field = $parent::fields()[$fieldName] ?? null) || $field->type !== 'child') return false
+	$this->model = $field->obj
+	$this->record = phlo($this->model, ...[$parent => $id], ...%payload)
+	$this->applySave
+	location(slash.$record.slash.$id.slash.$fieldName.slash.$this->record->id)
+}
+
+route async PUT api $record $id {
+	if (!$this->model = CMS::uriRecordFind($record)) return false
+	$this->id = $id
+	$this->record = $this->model::record(id: $id)
+	$this->applySave
+	location(slash.($this->model::$uriRecord ?? $this->model).slash.$id)
+}
+
+route async PUT api $record $id $fieldName $childId {
+	if (!($parent = CMS::uriRecordFind($record)) || !($field = $parent::fields()[$fieldName] ?? null) || $field->type !== 'child') return false
+	$this->model = $field->obj
+	$this->id = $childId
+	$this->record = $this->model::record(id: $childId)
+	$this->applySave
+	location(slash.$record.slash.$id.slash.$fieldName.slash.$childId)
+}
+
+route async PATCH api $model $id $fieldName {
+	if (!in_array($model, %app->models) || !($field = $model::fields()[$fieldName] ?? null)) return false
+	$this->model = $model
+	$this->record = $model::record(id: $id)
+	$old = clone $this->record
+	$this->parsePayload($this->fieldsPatch($fieldName))
+	$this->event('beforeChange', $old)
+	$this->event('beforeSave', $old)
+	$this->record->objSave
+	$this->event('afterChange', $old)
+	$this->event('afterSave', $old)
+	location(substr($_SERVER['HTTP_REFERER'], strlen('https://'.host)))
+}
+
+route async DELETE api $record $id {
+	if (!$model = CMS::uriRecordFind($record)) return false
+	$this->model = $model
+	$this->record = $model::record(id: $id)
+	$this->event('beforeDelete')
+	$model::delete('id=?', $id)
+	$this->event('afterDelete')
+	location(slash.($model::$uriList ?? $model::$table))
+}
+
+route async DELETE api $record $id $fieldName $childId {
+	if (!($parent = CMS::uriRecordFind($record)) || !($field = $parent::fields()[$fieldName] ?? null) || $field->type !== 'child') return false
+	$this->model = $field->obj
+	$this->record = $this->model::record(id: $childId)
+	$this->event('beforeDelete')
+	$field->obj::delete('id=?', $childId)
+	$this->event('afterDelete')
+	location(slash.($parent::$uriRecord ?? $parent).slash.$id)
+}
+
+method event($event, ...$args) => method_exists($this->model, $event) && $this->record->$event(...$args)
+method fields => array_filter($this->model::fields(), fn($field) => !in_array($field->type, ['child', 'many', 'virtual']))
+prop fieldsRequired => array_filter($this->fields, fn($field) => $field->required)
+prop fieldsPatch($name) => array_filter($this->fields, fn($field) => $field->handle || $field->name === $name)
+
+method checkRequired {
+	$required = []
+	foreach ($this->fieldsRequired AS $column => $field) %payload->$column || $this->record->$column || $required[] = $field
+	return $required ?: true
+}
+
+method parsePayload($fields) => loop($fields, [$this, 'parsePayloadField'])
+method parsePayloadField($field, $column){
+	if ($field->has('parse')) $field->parse($this->record)
+	elseif ($value = %payload->$column) $this->record->$column = $value
+}
+
+method applySave {
+	if (is_array($required = $this->checkRequired)) apply(class: [loop($required, fn($field) => "[name=\"$field->name\"]", ', ') => 'error'], error: 'Vul alle verplichte velden in')
+	$old = clone $this->record
+	$this->parsePayload($this->fields)
+	$this->event('beforeSave', $old)
+	if (method === 'POST'){
+		$this->event('beforeCreate')
+		$this->record = $this->model::create(...$this->record)
+		$this->event('afterCreate')
+	}
+	if (method === 'PUT'){
+		$this->event('beforeChange', $old)
+		$this->model::change('id=?', $this->id, ...$this->record) && $this->record = $this->model::record(id: $this->id)
+		$this->event('afterChange', $old)
+	}
+	$this->event('afterSave', $old)
+}

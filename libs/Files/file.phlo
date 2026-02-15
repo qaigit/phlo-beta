@@ -1,0 +1,62 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: File library
+
+static __handle => "file/$file".($name ? "/$name" : void)
+method __construct(public string $file, ?string $name = null, $contents = null, ...$args){
+	$name && $this->name = $name
+	is_string($contents) && $this->write($contents)
+	$args && $this->objImport(...$args)
+}
+
+method append(string $data) => file_put_contents($this->file, $data, FILE_APPEND)
+prop basename => pathinfo($this->file, PATHINFO_BASENAME)
+method base64 => base64_encode($this->contents)
+method contents => file_get_contents($this->file)
+method contentsINI(bool $parse = true) => parse_ini_string($this->contents, true, $parse ? INI_SCANNER_TYPED : INI_SCANNER_RAW)
+method contentsJSON($assoc = null) => json_decode($this->contents, $assoc)
+method copy($to) => copy($this->file, $to)
+method created => filectime($this->file)
+method createdAge => age($this->created)
+method createdHuman => time_human($this->created)
+method curl($type = null, $filename = null) => new CURLFile($this->file, $type, $filename)
+method delete => first($deleted = $this->exists && unlink($this->file), debug($deleted ? "Deleted $this->basename" : "Could not delete $this->basename"))
+method exists => file_exists($this->file)
+prop ext => pathinfo($this->name, PATHINFO_EXTENSION)
+prop filename => pathinfo($this->file, PATHINFO_FILENAME)
+method getLine => ($line = fgets($this->pointer)) === false ? false : rtrim($line)
+method getLength(int $length) => fread($this->pointer, $length)
+method is(string $file) => $file === $this->file
+method md5 => md5_file($this->file)
+prop mime => mime($this->name)
+method modified => filemtime($this->file)
+method modifiedAge => age($this->modified)
+method modifiedHuman => time_human($this->modified)
+method move($to) => rename($this->file, $to) && $this->file = $to
+prop name => $this->basename
+method output($download = false) => output($this->contents, $this->name, $download)
+prop path => realpath(pathinfo($this->file, PATHINFO_DIRNAME)).slash
+prop pathRel => str_starts_with($this->file, $relRoot = dirname(dirname($_SERVER['DOCUMENT_ROOT'])).slash) ? substr($this->file, strlen($relRoot)) : $this->file
+prop pointer => fopen($this->file, 'r+')
+method readable => is_readable($this->file)
+method src => "data:$this->mime;base64,$this->base64"
+method size => filesize($this->file)
+method sizeHuman(int $precision = 0) => size_human($this->size, $precision)
+method sha1 => sha1_file($this->file)
+method shortenTo(int $length) => strlen($this->name) <= $length ? $this->name : substr($this->name, 0, $length - strlen($this->ext) - 3).dot.dot.dot.$this->ext
+method title => ucfirst(strtr(pathinfo($this->name, PATHINFO_FILENAME), [us => space]))
+method token($length = 20) => token($length, sha1: $this->sha1)
+method type => substr($this->mime, 0, strpos($this->mime, slash))
+method touch => touch($this->file)
+method writeable => is_writeable($this->file)
+method writeINI($data, bool $deleteEmpty = false) => $this->write(!$deleteEmpty || $data ? loop($data, fn($value, $key) => $key.' = '.dq.strtr($value, [dq => bs.dq, lf => '\n']).dq, lf).lf : void, $deleteEmpty)
+method writeJSON($data, bool $deleteEmpty = false) => $this->write(!$deleteEmpty || $data ? json_encode($data, jsonFlags) : void, $deleteEmpty)
+method writeJSONplain($data, bool $deleteEmpty = false) => $this->write(!$deleteEmpty || $data ? json_encode($data) : void, $deleteEmpty)
+method write(string $data, bool $deleteEmpty = false){
+	if (!$data && $deleteEmpty) return $this->delete
+	if ($written = file_put_contents($this->file, $data) !== false) debug('Written '.$this->basename.' ('.$this->sizeHuman.')')
+	else error('Could not write '.$this->file)
+	return $written
+}
+
+method objInfo => array_combine($keys = array_merge(['file', 'name', 'exists'], $this->exists ? ['sizeHuman', 'createdHuman', 'modifiedHuman', 'mime'] : []), loop($keys, fn($arg) => $this->$arg))

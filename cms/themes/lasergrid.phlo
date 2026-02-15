@@ -1,0 +1,13 @@
+<style ns=theme.lasergrid>
+:root {
+	$background: #0b000f
+	$surface: #1a0024
+	$primary: #ff00ff
+	$text: #ffe6ff
+	$link: #ff87ff
+	$row-even: #260036
+	$row-odd: #12001b
+	$row-hover: #ff00ff29
+	$warning: #ff2e63
+}
+</style>

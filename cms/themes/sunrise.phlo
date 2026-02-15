@@ -1,0 +1,13 @@
+<style ns=theme.sunrise>
+:root {
+	$background: #fff5e1
+	$surface: #ffe4b5
+	$primary: #ffcc80
+	$text: #4e342e
+	$link: #ff7043
+	$row-even: #fff3e0
+	$row-odd: #fff8e1
+	$row-hover: #ff704329
+	$warning: #e64a19
+}
+</style>

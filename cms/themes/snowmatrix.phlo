@@ -1,0 +1,13 @@
+<style ns=theme.snowmatrix>
+:root {
+	$background: linear-gradient(to bottom, #ffffff, #f8fbff)
+	$surface: #ffffff
+	$primary: #2dd4bf
+	$text: #1e293b
+	$link: #14b8a6
+	$row-even: #f1f5f9
+	$row-odd: #ffffff
+	$row-hover: #2dd4bf29
+	$warning: #ef4444
+}
+</style>

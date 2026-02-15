@@ -1,0 +1,13 @@
+<style ns=theme.dusksorbet>
+:root {
+	$background: linear-gradient(to bottom, #1a1a26, #261b33, #331b3f)
+	$surface: #241a33
+	$primary: #ffb3a6
+	$text: #ffeae6
+	$link: #ffd6d0
+	$row-even: #2d2044
+	$row-odd: #140f22
+	$row-hover: #ffb3a629
+	$warning: #ff4c4c
+}
+</style>

@@ -1,0 +1,51 @@
+@ class: widget_gauge
+
+view => tag (
+	'div',
+	void,
+	class: 'gauge',
+	data_value: $this->data,
+)
+
+<script>
+widget.init.gauge = (data) => ({
+  series: [
+    {
+      type: 'gauge',
+			color: app.var.primary,
+      progress: {
+        show: true,
+        width: 18
+      },
+      axisLine: {lineStyle: {width: 18}},
+      axisTick: {show: false},
+      splitLine: {
+        length: 3,
+        lineStyle: {
+          width: 2,
+          color: '#999'
+        }
+      },
+      axisLabel: {
+        distance: 20,
+				color: '#999',
+				fontSize: 10
+      },
+      anchor: {
+        show: true,
+        showAbove: true,
+        size: 25,
+        itemStyle: {borderWidth: 10}
+      },
+      title: {show: false},
+      detail: {
+				color: app.var.text,
+        valueAnimation: true,
+        fontSize: 40,
+        offsetCenter: [0, '70%']
+      },
+      data: [{value: data.value}]
+    }
+  ]
+})
+</script>

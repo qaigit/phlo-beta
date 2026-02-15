@@ -1,0 +1,209 @@
+* {
+	box-sizing: border-box
+	scrollbar-color: #bef264 black
+	scrollbar-width: thin
+}
+html: height: 100%
+body {
+	background: black
+	color: white
+	display: grid
+	font-family: sans-serif
+	grid-template-rows: auto 1fr auto
+  grid-template-columns: max-content 1fr 200px
+	height: 100dvh
+	margin: 0
+	overflow: hidden
+}
+a {
+	color: white
+	text-decoration: none
+}
+button {
+	background: transparent
+	border-top: 1px solid white
+	color: white
+}
+header {
+	grid-column: 1 / -1
+	display: flex
+	align-items: center
+	justify-content: space-between
+	gap: 1rem
+	padding: .25rem
+	border-bottom: 1px solid white
+	.box {
+		border: 2px solid white
+		border-radius: 3px
+		cursor: pointer
+		display: inline-block
+		padding: 0 .25rem
+		text-align: center
+		width: 1.33em
+	}
+	#nav {
+		background: transparent
+		border: 0
+		color: white
+		option: background: black
+	}
+}
+#files {
+	border-right: 1px solid white
+	grid-row: 2
+	grid-column: 1
+	max-height: 100%
+	overflow: auto
+	div {
+		max-height: 0
+		overflow: hidden
+		padding: 0 .25rem
+		transition: max-height 500ms,padding 500ms
+		\.file: cursor: pointer
+		\.changed:before {
+			content: "🔴 "
+			font-size: .8em
+		}
+	}
+	\.all div.open:not(.header), \:not(.all) div.active, \:not(.all) div.file:hover {
+		background: #234
+	}
+	\.all > *, .open {
+		max-height: 33px
+		padding: .25rem
+	}
+}
+#files div.header: color: #bef264
+main {
+	background: #111518
+	grid-row: 2
+	grid-column: 2
+	min-width: 0
+	min-height: 0
+	overflow: auto
+	h1: margin: 0
+	ol.code {
+		color: #e5e7eb
+		font-family: ui-monospace, Menlo, Consolas, monospace
+		font-size: .9em
+		line-height: 1.2
+		list-style: decimal
+		margin: 0
+		padding: 1rem 0 1rem 2.5rem
+		tab-size: 2
+		\::selection: background: #4c48a0
+		li {
+			padding-left: .5rem
+			white-space: pre
+		}
+		li::marker {
+			color: #AAA
+			font-size: .9em
+		}
+	}
+}
+#nav:focus, ol.code:focus, textarea:focus, button:focus: outline: 0
+#helpers {
+	border-left: 1px solid white
+	display: flex
+	flex-direction: column
+	grid-row: 2
+	grid-column: 3
+	min-height: 0
+}
+#nodes {
+	flex: 1 1 auto
+	overflow: auto
+	div {
+		cursor: pointer
+		font-size: .9em
+		overflow: hidden
+		padding: .25rem
+		text-overflow: ellipsis
+		white-space: nowrap
+		\.visible: border-right: 6px solid #bef264
+		\:hover: background: #234
+		.hl-node: font-size: .9em
+	}
+}
+#AI {
+	border-top: 1px solid white
+	flex: 0 0 auto
+	textarea {
+		background: transparent
+		border: 0
+		color: white
+		font-family: sans-serif
+		font-size: .8em
+		padding: .25rem
+		resize: vertical
+		width: 100%
+	}
+	button: width: 100%
+}
+footer {
+	border-top: 1px solid white
+	color: #DDD
+	display: flex
+	font-size: .8em
+	gap: 3rem
+	grid-column: 1 / -1
+	justify-content: center
+	padding: .25rem
+	text-align: center
+}
+#answer {
+	background: #333D
+	backdrop-filter: blur(5px)
+	border: 1px solid white
+	border-radius: 12px
+	inset: 1rem
+	margin: auto
+	max-width: 600px
+	max-height: 400px
+	overflow: auto
+	padding: 2rem
+	position: absolute
+	white-space: pre-wrap
+}
+#phlo-hints {
+	position: absolute;
+	z-index: 9999;
+	min-width: 260px;
+	max-width: 560px;
+	max-height: 300px;
+	overflow: auto;
+	background: #111;
+	border: 1px solid #fff;
+	border-radius: 10px;
+	box-shadow: 0 8px 24px #0008;
+	font-family: sans-serif;
+}
+#phlo-hints .item {
+	display: flex;
+	align-items: baseline;
+	gap: .5rem;
+	padding: .25rem .5rem;
+	cursor: pointer;
+	white-space: nowrap;
+}
+#phlo-hints .item:hover, #phlo-hints .item.active {
+	background: #fff;
+	color: #000;
+}
+#phlo-hints .label {
+	font-weight: 600;
+}
+#phlo-hints .meta {
+	margin-left: auto;
+	opacity: .7;
+	font-size: .8em;
+}
+#phlo-hints .kind {
+	font-size: .75em;
+	opacity: .8;
+}
+#phlo-hints .hl {
+	 text-decoration:  underline;
+	 text-decoration-style:  dotted;
+}

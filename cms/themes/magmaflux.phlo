@@ -1,0 +1,13 @@
+<style ns=theme.magmaflux>
+:root {
+	$background: linear-gradient(to bottom, #140308, #2b0610, #451018)
+	$surface: #220712
+	$primary: #ff4b1f
+	$text: #ffeae2
+	$link: #ffb347
+	$row-even: #2e0a18
+	$row-odd: #1a050c
+	$row-hover: #ff4b1f29
+	$warning: #ff1744
+}
+</style>

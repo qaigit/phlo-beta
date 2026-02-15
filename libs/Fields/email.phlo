@@ -1,0 +1,8 @@
+@ extends:     field
+@ class:       field_email
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: CMS email field
+@ extends: field_text
+
+view label($record, $CMS): <a href="mailto:{{ $record->{$this->name} }}">{{ $record->{$this->name} }}</a>

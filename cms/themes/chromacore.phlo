@@ -1,0 +1,13 @@
+<style ns=theme.chromacore>
+:root {
+	$background: #000000
+	$surface: #0f001f
+	$primary: #b200ff
+	$text: #f0e6ff
+	$link: #d9b3ff
+	$row-even: #1b0036
+	$row-odd: #09001a
+	$row-hover: #b200ff29
+	$warning: #ff2671
+}
+</style>

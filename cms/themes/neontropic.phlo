@@ -1,0 +1,13 @@
+<style ns=theme.neontropic>
+:root {
+	$background: linear-gradient(to bottom, #00FFA3, #DC1FFF)
+	$surface: #1C1B3A
+	$primary: #DC1FFF
+	$text: #FFFFFF
+	$link: #00FFA3
+	$row-even: #241D46
+	$row-odd: #1C1B3A
+	$row-hover: #00FFA329
+	$warning: #FF3F81
+}
+</style>

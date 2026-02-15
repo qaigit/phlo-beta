@@ -1,0 +1,74 @@
+@ extends:     field
+@ class:       field_wysiwyg
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: CMS WYSIWYG field
+
+method input($record, $CMS){
+	$value = $record->{$this->name} ?? $this->default ?? void
+	$toolbar = tag('div', class: 'toolbar', inner: tag('button', type: 'button', data_command: 'bold', inner: '<b>B</b>').tag('button', type: 'button', data_command: 'italic', inner: '<i>I</i>').tag('button', type: 'button', data_command: 'underline', inner: '<u>U</u>').tag('button', type: 'button', data_command: 'insertUnorderedList', inner: '•').tag('button', type: 'button', data_command: 'insertOrderedList', inner: '1.'))
+	$editor = tag('div', class: 'editor', contenteditable: 'true', inner: $value)
+	$hiddenInput = textarea(name: $this->name, class: 'hidden-value', inner: $value)
+	return tag('div', class: 'wysiwyg-container', inner: "$toolbar$editor$hiddenInput");
+}
+
+method sql => "`$this->name` TEXT"
+
+<script>
+on('click', '.wysiwyg-container .toolbar button', (button, e) => {
+	e.preventDefault()
+	const command = button.dataset.command
+	document.execCommand(command, false, null)
+})
+
+on('input', '.wysiwyg-container .editor', (editor) => {
+	const container = editor.closest('.wysiwyg-container')
+	const hiddenInput = container.querySelector('textarea.hidden-value')
+	hiddenInput.value = editor.innerHTML
+})
+on('click', '.wysiwyg-container .editor a', (a) => window.open(a.href))
+</script>
+
+<style>
+.input.wysiwyg > .wysiwyg-container {
+	display: flex
+	flex-direction: column
+	gap: 0
+	border: 1px solid $primary
+	border-radius: 6px
+	padding: 0
+	background: $background
+}
+.wysiwyg-container .toolbar {
+	display: flex
+	gap: .25rem
+	padding: .25rem
+	background: $surface
+	border-bottom: 1px solid $primary
+	border-top-left-radius: 6px
+	border-top-right-radius: 6px
+	button {
+		background: $surface
+		border: 1px solid transparent
+		color: $text
+		cursor: pointer
+		min-width: 28px
+		height: 28px
+		padding: 0
+		border-radius: 4px
+		b, i, u: font-family: 'Times New Roman', serif
+		\:hover {
+			background: $primary
+			border-color: $link
+		}
+	}
+}
+.wysiwyg-container .editor {
+	min-height: 200px
+	padding: .5rem
+	white-space: normal
+	outline: none
+	a: cursor: pointer
+}
+.wysiwyg-container textarea.hidden-value: display: none
+</style>

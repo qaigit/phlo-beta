@@ -1,0 +1,33 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: Simple toast library
+
+<script>
+app.mod.toast = msg => {
+	obj('#toasts') || app.mod.append('body', '<div id="toasts"></div>')
+	const toast = document.createElement('div')
+	toast.innerHTML = msg
+	toast.onclick = () => toast.remove()
+	obj('#toasts').insertAdjacentElement('beforeend', toast)
+	setTimeout(() => toast.remove(), 4000)
+}
+</script>
+
+<style>
+#toasts {
+	position: fixed
+	right: 10px
+	top: 5px
+	z-index: 1001
+	> * {
+		background-color: #000A
+		border-radius: 10px
+		clear: both
+		color: white
+		cursor: zoom-out
+		float: right
+		margin-top: 5px
+		padding: 3px 6px
+	}
+}
+</style>

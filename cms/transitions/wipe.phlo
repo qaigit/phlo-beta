@@ -1,0 +1,70 @@
+<style ns=trans.wipe>
+::view-transition-group(root): background: black
+html.wipe {
+	main: view-transition-name: main
+	\::view-transition-old(main): animation: 250ms ease-out wipe-out both
+	\::view-transition-new(main): animation: 250ms ease-out wipe-in both
+	\.back::view-transition-old(main): animation: 250ms ease-out wipe-out-reverse both
+	\.back::view-transition-new(main): animation: 250ms ease-out wipe-in-reverse both
+}
+
+@keyframes wipe-out {
+	0% {
+		clip-path: inset(0% 0% 0% 0%)
+		opacity: 1
+	}
+	60% {
+		clip-path: inset(0% 0% 0% 60%)
+		opacity: .3
+	}
+	100% {
+		clip-path: inset(0% 0% 0% 100%)
+		opacity: 0
+	}
+}
+
+@keyframes wipe-in {
+	0% {
+		clip-path: inset(0% 100% 0% 0%)
+		opacity: 0
+	}
+	40% {
+		clip-path: inset(0% 40% 0% 0%)
+		opacity: .9
+	}
+	100% {
+		clip-path: inset(0% 0% 0% 0%)
+		opacity: 1
+	}
+}
+
+@keyframes wipe-out-reverse {
+	0% {
+		clip-path: inset(0% 0% 0% 0%)
+		opacity: 1
+	}
+	60% {
+		clip-path: inset(0% 60% 0% 0%)
+		opacity: .3
+	}
+	100% {
+		clip-path: inset(0% 100% 0% 0%)
+		opacity: 0
+	}
+}
+
+@keyframes wipe-in-reverse {
+	0% {
+		clip-path: inset(0% 0% 0% 100%)
+		opacity: 0
+	}
+	40% {
+		clip-path: inset(0% 0% 0% 40%)
+		opacity: .9
+	}
+	100% {
+		clip-path: inset(0% 0% 0% 0%)
+		opacity: 1
+	}
+}
+</style>

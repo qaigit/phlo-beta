@@ -1,0 +1,10 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: Single Page App CSS grid boilerplate
+
+<style>
+.grid {
+	display: grid
+	grid-template-columns: repeat(auto-fit, minmax(300px, 1fr))
+}
+</style>

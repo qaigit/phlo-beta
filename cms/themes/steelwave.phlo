@@ -1,0 +1,13 @@
+<style ns=theme.steelwave>
+:root {
+	$background: linear-gradient(to bottom, #E1E6F0 0%, #C0CADB 50%, #94A3B8 100%)
+	$surface: #F8FAFC
+	$primary: #3B82F6
+	$text: #1E293B
+	$link: #2563EB
+	$row-even: #EDF1F7
+	$row-odd: #E4E9F0
+	$row-hover: #3B82F629
+	$warning: #DC2626
+}
+</style>

@@ -1,0 +1,13 @@
+<style ns=theme.neonvertex>
+:root {
+	$background: #000204
+	$surface: #041018
+	$primary: #0aff9c
+	$text: #e6fff5
+	$link: #66ffcc
+	$row-even: #0a1f26
+	$row-odd: #030b0d
+	$row-hover: #0aff9c29
+	$warning: #ff4477
+}
+</style>

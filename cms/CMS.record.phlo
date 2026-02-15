@@ -1,0 +1,114 @@
+@ extends: CMS
+
+route both GET $record $id $debug? {
+	if (!$model = CMS::uriRecordFind($record)) return false
+	%app->active = $model
+	$CMS = CMS($model, 'record', id: $id)
+	$debug && dx($model, $CMS)
+	main($CMS, $CMS->title)
+}
+
+route both GET $record $id $fieldName $childId $debug? {
+	if (!($model = CMS::uriRecordFind($record)) || !($field = $model::fields()[$fieldName] ?? null) || !(is_a($field, 'field_child') || is_a($field, 'field_many'))) return false;
+	%app->active = $model
+	$CMS = CMS($model, 'record', id: $id, childField: $fieldName, childId: $childId, childMode: 'record', hideBody: true)
+	$debug && dx($model, $CMS, $field, $childId)
+	main($CMS, $CMS->title)
+}
+
+route both GET $record $id $fieldName $debug? {
+	if (!($model = CMS::uriRecordFind($record)) || !($field = $model::fields()[$fieldName] ?? null) || !(is_a($field, 'field_child') || is_a($field, 'field_many'))) return false;
+	%app->active = $model
+	$CMS = CMS($model, 'record', id: $id, childField: $fieldName, hideBody: true)
+	$debug && dx($model, $CMS, $field)
+	main($CMS, $CMS->title)
+}
+
+prop mode = 'record'
+prop title => "$this->titleRecord: $this->record"
+
+prop actions {
+	$actions = []
+	$this->model::canDelete($this->record) && $actions[] = button('Verwijderen', data_delete: "api/$this->uri", data_confirm: 'Verwijderen?', class: 'warning')
+	$this->model::canChange($this->record) && $actions[] = tag('a', 'Bewerken', href: "/change/$this->uri", class: 'async btn primary')
+	return implode(lf, $actions)
+}
+
+prop children => array_filter($this->model::fields(), fn($f) => (is_a($f, 'field_child') || is_a($f, 'field_many')) && $f->record === 'list')
+prop childMode = 'list'
+
+view:
+$this->event<section $this->section>
+	<if $this->hideBody>
+		<header>
+			<$this->titleTag>$this->DOMtitle</$this->titleTag>
+		</header>
+	<else>
+		{{ $this->header }}
+		{{ $this->body }}
+	</if>
+</section>
+<if $this->mode === 'record'>
+	<foreach $this->children AS $column => $child>
+		<if $this->parent || !$this->childField || $column === $this->childField>
+			<if $this->childMode === 'list'>
+				{{ CMS($child->obj, 'list', parent: $this, childField: $this->childField ?? $column, records: $this->record->$column, relationshipName: $column, foreignKey: $child->key ?? $this->model) }}
+			<else>
+				{{ CMS($child->obj, $this->childMode, parent: $this, childField: $this->childField ?? $column, id: $this->childId, relationshipName: $column, foreignKey: $child->key ?? $this->model) }}
+			</if>
+		</if>
+	</foreach>
+</if>
+
+view header:
+<header>
+	<$this->titleTag>$this->DOMtitle</$this->titleTag>
+	{{ $this->actions }}
+</header>
+
+view body:
+<div.body data-id="{{ $this->record->id }}">
+	<foreach $this->fields AS $column => $field>
+		<div.field>
+			<label>{( $field->title ?? ucfirst($column) )}</label>
+			{{ $this->field($field, $this->record, 'div') }}
+		</div>
+	</foreach>
+</div>
+
+<style>
+section.record.default, section.change.default, section.create.default: div.body, form {
+	border-radius: 12px
+	display: flex
+	flex-wrap: wrap
+	gap: 1rem
+	margin-top: .5rem
+	label {
+		font-weight: bold
+		color: $text
+		opacity: .8
+	}
+	.field {
+		background: $surface
+		border: 1px solid #FFF1
+		border-radius: 9px
+		padding: 1rem
+		flex-grow: 1
+		min-width: 20%
+		display: flex
+		flex-direction: column
+		gap: .5rem
+		> div {
+			background: $surface-alt
+			border-radius: 6px
+			flex: 1
+			display: flex
+			align-items: center
+			gap: .5rem
+			padding: .5rem
+			white-space: nowrap
+		}
+	}
+	.link: padding: .25rem 0
+}
+</style>

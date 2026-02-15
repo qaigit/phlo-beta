@@ -1,0 +1,35 @@
+<style ns=trans.tv>
+html.tv {
+	main: view-transition-name: main
+	\::view-transition-old(main): animation: 300ms cubic-bezier(1, 0, 0, 1) tv-out both
+	\::view-transition-new(main): animation: 300ms cubic-bezier(1, 0, 0, 1) tv-in both
+}
+@keyframes tv-out {
+	0% {
+		opacity: 1
+		transform: scale(1, 1)
+	}
+	50% {
+		opacity: 0.8
+		transform: scale(1, 0.02)
+	}
+	100% {
+		opacity: 0
+		transform: scale(0, 0)
+	}
+}
+@keyframes tv-in {
+	0% {
+		opacity: 0
+		transform: scale(0, 0)
+	}
+	50% {
+		opacity: 0.8
+		transform: scale(1, 0.02)
+	}
+	100% {
+		opacity: 1
+		transform: scale(1, 1)
+	}
+}
+</style>

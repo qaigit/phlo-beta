@@ -1,0 +1,49 @@
+<style ns=trans.skew>
+html.skew {
+	main: view-transition-name: main
+	\::view-transition-old(main): animation: 250ms ease-in skew-out both
+	\::view-transition-new(main): animation: 250ms ease-in skew-in both
+	\.back::view-transition-old(main): animation: 250ms ease-in skew-out-reverse both
+	\.back::view-transition-new(main): animation: 250ms ease-in skew-in-reverse both
+}
+@keyframes skew-out {
+	0% {
+		opacity: 1
+		transform: skewX(0deg)
+	}
+	100% {
+		opacity: 0
+		transform: skewX(15deg)
+	}
+}
+@keyframes skew-in {
+	0% {
+		opacity: 0
+		transform: skewX(-15deg)
+	}
+	100% {
+		opacity: 1
+		transform: skewX(0deg)
+	}
+}
+@keyframes skew-out-reverse {
+	0% {
+		opacity: 1
+		transform: skewX(0deg)
+	}
+	100% {
+		opacity: 0
+		transform: skewX(-15deg)
+	}
+}
+@keyframes skew-in-reverse {
+	0% {
+		opacity: 0
+		transform: skewX(15deg)
+	}
+	100% {
+		opacity: 1
+		transform: skewX(0deg)
+	}
+}
+</style>

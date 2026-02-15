@@ -1,0 +1,85 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: User agent information
+
+prop source => $_SERVER['HTTP_USER_AGENT'] ?? null
+
+prop os {
+	if (!$this->source) return 'Unknown'
+	$list = [
+		'Android' => '/Android/i',
+		'iPadOS' => '/iPad.*OS/i',
+		'iOS' => '/iPhone|iPod/i',
+		'Windows' => '/Windows NT/i',
+		'macOS' => '/Mac OS X/i',
+		'ChromeOS' => '/CrOS/i',
+		'Linux' => '/Linux/i',
+	]
+	foreach ($list AS $n => $r) if (preg_match($r, $this->source)) return $n
+	if (preg_match('/iPad/i',$this->source) && preg_match('/Mac OS X/i',$this->source)) return 'iPadOS'
+	return 'Unknown'
+}
+
+prop osV {
+	if (!$this->source) return void
+	if (preg_match('/(?:Android|OS X|OS|Windows NT)\s*([0-9._]+)/i', $this->source, $m)) {
+		$v = strtr($m[1], [us => dot])
+		$v = preg_replace('/[^0-9.].*/','', $v)
+		$v = preg_replace('/(?:\.0)+$/','', $v)
+		return $v
+	}
+	return void
+}
+
+prop osFull {
+	if (!$this->OS) return 'Unknown'
+	$v = $this->osV
+	if (!$v) return $this->OS
+	$short = preg_replace('/^(\d+\.\d+).*/','$1',$v)
+	if (preg_match('/\.0$/',$short)) $short = preg_replace('/\.0$/','',$short)
+	return trim($this->OS.' '.$short)
+}
+
+prop name {
+	if (!$this->source) return 'Unknown'
+	if (preg_match('/\bwv\b/',$this->source) || (preg_match('/Version\/\d+\.\d+/',$this->source) && strpos($this->source,'Chrome/')!==false && strpos($this->source,'Safari/')!==false && strpos($this->source,' Mobile ')!==false)) return 'Android WebView'
+	if (preg_match('/CriOS\/([0-9.]+)/',$this->source)) return 'Chrome'
+	if (preg_match('/FxiOS\/([0-9.]+)/',$this->source)) return 'Firefox'
+	$list = [
+		'Edge' => '/Edg\/([0-9.]+)/',
+		'Opera' => '/OPR\/([0-9.]+)/',
+		'Samsung Internet' => '/SamsungBrowser\/([0-9.]+)/i',
+		'Chrome' => '/Chrome\/([0-9.]+)/',
+		'Firefox' => '/Firefox\/([0-9.]+)/',
+		'Safari' => '/Version\/([0-9.]+).*Safari/i',
+	]
+	foreach ($list AS $n => $r) if (preg_match($r, $this->source)) return $n
+	return 'Unknown'
+}
+
+prop version {
+	if (!$this->source) return void
+	if (preg_match('/(?:Edg|OPR|Chrome|Firefox|Version|CriOS|FxiOS|SamsungBrowser)\/([0-9.]+)/', $this->source, $m)) {
+		$v = $m[1]
+		$v = preg_replace('/[^0-9.].*/','', $v)
+		$v = preg_replace('/(?:\.0)+$/','', $v)
+		return $v
+	}
+	return void
+}
+
+prop full {
+	if (!$this->name) return 'Unknown'
+	$v = $this->version
+	if (!$v) return $this->name
+	$short = preg_replace('/^(\d+\.\d+).*/','$1',$v)
+	if (preg_match('/\.0$/',$short)) $short = preg_replace('/\.0$/','',$short)
+	return rtrim($this->name.' '.$short)
+}
+
+prop device {
+	if (!$this->source) return 'Unknown'
+	if (preg_match('/iPad|Tablet|Tab|SM-T|Nexus 7|Nexus 10/i', $this->source)) return 'Tablet'
+	if (preg_match('/Mobile|iPhone|Android.*Mobile|SM-G|Pixel [0-9]/i', $this->source)) return 'Phone'
+	return 'Desktop'
+}

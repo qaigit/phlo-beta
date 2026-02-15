@@ -1,0 +1,13 @@
+<style ns=theme.nightorchid>
+:root {
+	$background: linear-gradient(to bottom, #120019, #2b0140, #3d015a)
+	$surface: #21002e
+	$primary: #ff4fd8
+	$text: #ffe6ff
+	$link: #ff9bf0
+	$row-even: #2a013c
+	$row-odd: #180020
+	$row-hover: #ff4fd829
+	$warning: #ff255e
+}
+</style>

@@ -1,0 +1,45 @@
+@ extends:     field_file
+@ class:       field_image
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: CMS image field
+
+prop delete = 'Delete image?'
+prop uri = '/images/'
+prop path = images
+prop thumbPath = thumbs
+prop thumbSize = 64
+prop thumbUri = '/thumbs/'
+
+method label($record, $CMS) => ($filename = $record->{$this->name}) ? tag('a', href: $this->uri.($url = $record->{$this->name.'_token'}.slash.rawurlencode($filename)), target: 'image', inner: tag('img', src: $this->thumbUri.$url)) : dash
+
+method input($record, $CMS){
+	$input = void
+	$file = $record->{$this->name} ? $this->read($record, $this->thumbPath) : null
+	$input .= lf.tab.tag('img', src: $file ? $this->thumbUri.$record->{$this->name.'_token'}.slash.rawurlencode($record->{$this->name}) : '/image.select.jpg', class: 'image')
+	$input .= lf.tab.input(type: 'file', class: 'image-input',  name: $this->name, accept: 'image/*', data_size: $this->thumbSize)
+	$file && $this->canDelete && $input .= lf.tab.tag('div', inner: tag('label', inner: input(type: 'checkbox', name: $this->name.'Delete')." $this->delete"))
+	return $input.lf
+}
+
+method write($file) => %img($file->file)->scale($this->thumbSize, $this->thumbSize)->save($this->writePath($file, $this->thumbPath)) && $file->move($this->writePath($file))
+
+method sql => ["`$this->name` varchar(100)", "`{$this->name}_token` char(20)"]
+
+<script>
+on('click', '.input.image .image', (img) => img.nextElementSibling.click())
+on('change', '.input.image .image-input', (input) => imageResizer(input.files[0], input.dataset.size, input.dataset.size, (image) => input.previousElementSibling.src = image))
+</script>
+
+<style>
+.input.image {
+	display: block !important
+	text-align: center
+	.image {
+		cursor: pointer
+		max-width: 100%
+	}
+	.image-input: display: none
+	input[type="checkbox"]: width: initial !important
+}
+</style>

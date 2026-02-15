@@ -1,0 +1,13 @@
+<style ns=theme.carbonshade>
+:root {
+	$background: linear-gradient(to bottom, #0B0F19 0%, #131B2E 50%, #1B2539 100%)
+	$surface: #111827
+	$primary: #3B82F6
+	$text: #E5E7EB
+	$link: #60A5FA
+	$row-even: #1A2335
+	$row-odd: #131B2E
+	$row-hover: #3B82F629
+	$warning: #F87171
+}
+</style>

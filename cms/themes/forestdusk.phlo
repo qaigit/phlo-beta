@@ -1,0 +1,13 @@
+<style ns=theme.forestdusk>
+:root {
+	$background: linear-gradient(to bottom, #1C3C3E, #4C9A2A, #A1DE93)
+	$surface: #243A2E
+	$primary: #4C9A2A
+	$text: #E9FDF0
+	$link: #acd4a2
+	$row-even: #325A40
+	$row-odd: #2B4935
+	$row-hover: #4C9A2A29
+	$warning: #FF5722
+}
+</style>

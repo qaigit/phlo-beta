@@ -1,0 +1,99 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: POST/PUT/PATCH and file-upload data object
+
+@ requires:    @file
+
+$contentType = $_SERVER['CONTENT_TYPE'] ?? void
+if (in_array(method, ['POST', 'PUT', 'PATCH']) && str_starts_with($contentType, 'application/json')){
+	$data = json_read('php://input')
+	return $this->objData = is_object($data) ? get_object_vars($data) : (is_array($data) ? $data : [])
+}
+if ($_POST) $this->objImport(...$_POST)
+elseif (in_array(method, ['PUT', 'PATCH']) && str_starts_with($contentType, 'application/x-www-form-urlencoded')){
+	$body = file_get_contents('php://input')
+	$data = []
+	parse_str($body, $data)
+	if ($data) $this->objImport(...$data)
+}
+elseif (in_array(method, ['PUT', 'PATCH']) && str_starts_with($contentType, 'multipart/form-data')){
+	$match = regex('/boundary="?([^";]+)"?/', $contentType)
+	if (!$match) return
+	$boundary = '--'.$match[1]
+	$arrays = []
+	$raw = file_get_contents('php://input')
+	foreach (explode($boundary, $raw) AS $part){
+		if (!trim($part) || $part === '--' || !str_contains($part, nl.nl)) continue
+		$headers = []
+		[$rawHeaders, $body] = explode(nl.nl, $part, 2)
+		foreach (explode(nl, trim($rawHeaders)) AS $header){
+			if (str_contains($header, colon)){
+				[$key, $value] = explode(colon, $header, 2)
+				$headers[strtolower(trim($key))] = trim($value)
+			}
+		}
+		if (!isset($headers['content-disposition'])) continue
+		if (!preg_match('/name="([^"]+)"/', $headers['content-disposition'], $match)) continue
+		$name = $match[1]
+		$body = rtrim($body, nl) ?: null
+		$base = $name
+		$keys = []
+		$hasEmptyIndex = false
+		if (preg_match('/^([^\[]+)((?:\[[^\]]*\])*)$/', $name, $m)){
+			$base = $m[1]
+			$brackets = $m[2]
+			if ($brackets){
+				preg_match_all('/\[([^\]]*)\]/', $brackets, $mm)
+				$keys = $mm[1]
+				$hasEmptyIndex = in_array('', $keys, true)
+			}
+		}
+		if ($hasEmptyIndex) $arrays[] = $base
+		$assign = function($value) use ($base, $keys){
+			if ($keys){
+				if (!isset($this->objData[$base]) || !is_array($this->objData[$base])) $this->objData[$base] = []
+				$ref =& $this->objData[$base]
+				$count = count($keys)
+				foreach ($keys AS $i => $k){
+					$last = $i === $count - 1
+					if ($k === ''){
+						if ($last) $ref[] = $value
+						else {
+							$ref[] = []
+							end($ref)
+							$idx = key($ref)
+							$ref =& $ref[$idx]
+						}
+					}
+					else {
+						if ($last) $ref[$k] = $value
+						else {
+							if (!isset($ref[$k]) || !is_array($ref[$k])) $ref[$k] = []
+							$ref =& $ref[$k]
+						}
+					}
+				}
+			}
+			else $this->objData[$base] = $value
+		};
+		if (preg_match('/filename="([^"]*)"/', $headers['content-disposition'], $f)){
+			if ($f[1] === void || $body === null){
+				if (!$hasEmptyIndex) $assign(null)
+				continue
+			}
+			$filename = $f[1]
+			$file = %file(tempnam(sys_get_temp_dir(), 'phlo'), $filename, $body)
+			$assign($file)
+		}
+		else $assign($body)
+	}
+	foreach ($this->objData AS $key => $val){
+		if (str_ends_with($key, '[]')){
+			unset($this->objData[$key])
+			$this->objData[substr($key, 0, -2)] = is_array($val) ? array_values(array_filter($val, fn($v) => $v !== null)) : [$val]
+		}
+		elseif (!is_array($val) && substr($key, -2) === '[]') $this->objData[$key] = [$val]
+	}
+	foreach (array_unique($arrays) AS $key) if (!isset($this->objData[$key])) $this->objData[$key] = []
+}
+if ($_FILES) $this->objImport(...loop($_FILES, fn($f) => is_array($f['name']) ? loop(array_keys($f['name']), fn($i) => $f['error'][$i] ? null : %file($f['tmp_name'][$i], $f['name'][$i], mime: $f['type'][$i], size: $f['size'][$i])) : ($f['error'] ? null : %file($f['tmp_name'], $f['name'], mime: $f['type'], size: $f['size']))))

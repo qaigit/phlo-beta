@@ -1,0 +1,9 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: PostgreSQL library
+
+@ extends:     DB
+@ requires:    @DB creds:postgresql
+
+prop PDO => new PDO('pgsql:host='.%creds->postgresql->host.';dbname='.%creds->postgresql->database, %creds->postgresql->user, %creds->postgresql->password)
+prop fieldQuotes = dq

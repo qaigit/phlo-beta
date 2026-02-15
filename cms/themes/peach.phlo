@@ -1,0 +1,13 @@
+<style ns=theme.peach>
+:root {
+	$background: #fff5f0
+	$surface: #ffe0e0
+	$primary: #ff9e80
+	$text: #4e342e
+	$link: #ff7043
+	$row-even: #ffe0e0
+	$row-odd: #fff5f0
+	$row-hover: #ff9e8029
+	$warning: #bf360c
+}
+</style>

@@ -1,0 +1,62 @@
+<style ns=trans.glitch>
+html.glitch {
+	main: view-transition-name: main
+	\::view-transition-old(main): animation: 300ms linear glitch-out both
+	\::view-transition-new(main): animation: 300ms linear glitch-in both
+}
+@keyframes glitch-out {
+	0% {
+		clip-path: inset(0 0 0 0)
+		transform: translate(0)
+	}
+	20% {
+		clip-path: inset(20% 0 80% 0)
+		transform: translate(-5px, 5px)
+	}
+	40% {
+		clip-path: inset(80% 0 5% 0)
+		transform: translate(5px, -5px)
+	}
+	60% {
+		clip-path: inset(10% 0 60% 0)
+		transform: translate(-5px, 0)
+	}
+	80% {
+		clip-path: inset(50% 0 20% 0)
+		transform: translate(5px, 5px)
+	}
+	100% {
+		clip-path: inset(50% 50% 50% 50%)
+		transform: translate(0)
+		opacity: 0
+	}
+}
+@keyframes glitch-in {
+	0% {
+		clip-path: inset(100% 0 0 0)
+		transform: translate(10px, 0)
+		opacity: 0
+	}
+	20% {
+		clip-path: inset(10% 0 60% 0)
+		transform: translate(-10px, 5px)
+	}
+	40% {
+		clip-path: inset(80% 0 5% 0)
+		transform: translate(5px, -10px)
+	}
+	60% {
+		clip-path: inset(0 0 20% 0)
+		transform: translate(-5px, 5px)
+	}
+	80% {
+		clip-path: inset(40% 0 40% 0)
+		transform: translate(5px, 0)
+	}
+	100% {
+		clip-path: inset(0 0 0 0)
+		transform: translate(0)
+		opacity: 1
+	}
+}
+</style>

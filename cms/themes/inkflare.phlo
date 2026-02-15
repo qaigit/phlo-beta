@@ -1,0 +1,13 @@
+<style ns=theme.inkflare>
+:root {
+	$background: linear-gradient(to bottom, #050816, #07071f, #12022b)
+	$surface: #09091a
+	$primary: #f97316
+	$text: #ffeede
+	$link: #ffb26b
+	$row-even: #0e1022
+	$row-odd: #060711
+	$row-hover: #f9731629
+	$warning: #ff2847
+}
+</style>

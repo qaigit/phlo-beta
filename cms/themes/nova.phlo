@@ -1,0 +1,13 @@
+<style ns=theme.nova>
+:root {
+	$background: #0c0c0c
+	$surface: #1f1a2e
+	$primary: #d500f9
+	$text: #e0e0e0
+	$link: #ea80fc
+	$row-even: #2d1b47
+	$row-odd: #1a1025
+	$row-hover: #d500f929
+	$warning: #ff1744
+}
+</style>

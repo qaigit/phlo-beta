@@ -1,0 +1,21 @@
+{
+	"name": "Phlo IDE",
+	"start_url": "/phlo/ide",
+	"id": "IDE",
+	"display": "standalone",
+	"background_color": "#000000",
+	"theme_color": "#000000",
+	"icons": [
+		{
+			"src": "/phlo/logo.png",
+			"sizes": "512x512",
+			"type": "image/png"
+		},
+		{
+			"src": "/phlo/logo.png",
+			"sizes": "512x512",
+			"type": "image/jpeg",
+			"purpose": "any maskable"
+		}
+	]
+}

@@ -1,0 +1,33 @@
+@ class: widget_list
+
+view => tag (
+	'div',
+	loop (
+		$this->data,
+		fn($item) => tag('div', $item),
+		lf,
+	),
+	class: 'list',
+)
+
+<style>
+figure div.list {
+	line-height: 2.1em
+	padding: 0 1.5rem
+	transition: 1s
+	div {
+		border-bottom: 1px solid #FFFD
+		overflow: hidden
+		opacity: 0
+		text-overflow: ellipsis
+		white-space: nowrap
+		\:first-child: border-top: 1px solid #FFFD
+		a: text-decoration: none
+	}
+	font-size: .85em
+}
+figure.init div.list {
+	padding-top: 1.15rem
+	div: opacity: 1
+}
+</style>

@@ -1,0 +1,8 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: MySQL handler via DB class
+
+@ extends:     DB
+@ requires:    @DB creds:mysql
+
+prop PDO => new PDO('mysql:host='.%creds->mysql->host.';dbname='.%creds->mysql->database, %creds->mysql->user, %creds->mysql->password)

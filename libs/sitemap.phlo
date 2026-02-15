@@ -1,0 +1,27 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: Generic multilingual sitemap generator
+
+route GET sitemap.xml => output($this)
+
+view:
+<?xml version=1.0 encoding="UTF-8"?>
+<urlset xmlns=http://www.sitemaps.org/schemas/sitemap/0.9 xmlns:xhtml=http://www.w3.org/1999/xhtml xmlns:xsi=http://www.w3.org/2001/XMLSchema-instance xsi:schemaLocation=http://www.sitemaps.org/schemas/sitemap/0.9+http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd>
+	<foreach %app->pages AS $uri>
+		{{ $this->page($uri) }}
+	</foreach>
+</urlset>
+
+view page($uri):
+<url>
+	<loc>https://{{ host }}{( $uri ?: slash )}</loc>
+	<foreach array_keys(%app->langs) AS $lang>
+		<if $lang === %app->lang>
+			{{ $this->xlink('x-default', $uri ?: slash) }}
+		</if>
+		{{ $this->xlink($lang, ($lang === %app->lang ? void : "/$lang").$uri ?: slash) }}
+	</foreach>
+</url>
+
+view xlink($lang, $uri): <xhtml:link rel=alternate hreflang="$lang" href="https://{{ host }}$uri"{{ slash }}>
+view link($lang, $uri): <link rel=alternate hreflang="$lang" href="https://{{ host }}$uri">

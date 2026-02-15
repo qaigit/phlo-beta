@@ -1,0 +1,13 @@
+<style ns=theme.tangerine>
+:root {
+	$background: #fff3e0
+	$surface: #ffe0b2
+	$primary: #fb8c00
+	$text: #e65100
+	$link: #ff7043
+	$row-even: #ffe0b2
+	$row-odd: #fff3e0
+	$row-hover: #fb8c0029
+	$warning: #bf360c
+}
+</style>

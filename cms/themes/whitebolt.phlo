@@ -1,0 +1,13 @@
+<style ns=theme.whitebolt>
+:root {
+	$background: #ffffff
+	$surface: #f3f3f3
+	$primary: #3b82f6
+	$text: #1f2937
+	$link: #1d4ed8
+	$row-even: #f1f5f9
+	$row-odd: #e2e8f0
+	$row-hover: #3b82f629
+	$warning: #ef4444
+}
+</style>

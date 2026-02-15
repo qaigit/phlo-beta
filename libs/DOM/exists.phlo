@@ -1,0 +1,16 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: onExist function for initialising DOM elements in a dynamic SPA environment
+
+<script>
+phlo.exist = []
+phlo.existing = new WeakMap
+
+const onExist = (els, cb) => phlo.exist.push({els, cb})
+
+app.updates.push(() => {
+	const existing = []
+	phlo.exist.forEach(item => objects(item.els).forEach(el => phlo.existing.has(el) || existing.push({el, cb: item.cb})))
+	existing.forEach(item => [phlo.existing.has(item.el) || phlo.existing.set(item.el, 'exist'), item.cb(item.el)])
+})
+</script>

@@ -1,0 +1,13 @@
+<style ns=theme.jadeember>
+:root {
+	$background: linear-gradient(to bottom, #021310, #03251e, #05352a)
+	$surface: #041f1a
+	$primary: #34d399
+	$text: #e7fff7
+	$link: #6ee7b7
+	$row-even: #082922
+	$row-odd: #031511
+	$row-hover: #34d39929
+	$warning: #fb4c5b
+}
+</style>

@@ -1,0 +1,13 @@
+<style ns=theme.crimson>
+:root {
+	$background: #0b0b0b
+	$surface: #1a1a1a
+	$primary: #ff1a1a
+	$text: #ffffff
+	$link: #ff2e2e
+	$row-even: #151515
+	$row-odd: #101010
+	$row-hover: #ff2e2e29
+	$warning: #ff0000
+}
+</style>

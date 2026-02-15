@@ -1,0 +1,13 @@
+<style ns=theme.cyberhaze>
+:root {
+	$background: linear-gradient(to bottom, #020111, #06031e, #0a052b)
+	$surface: #0b0f24
+	$primary: #ff00ea
+	$text: #ffe6fc
+	$link: #ff87f7
+	$row-even: #131634
+	$row-odd: #070816
+	$row-hover: #ff00ea29
+	$warning: #ff2e63
+}
+</style>

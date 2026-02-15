@@ -1,0 +1,13 @@
+<style ns=theme.oceandeep>
+:root {
+	$background: linear-gradient(to bottom, #001C30, #0A6EBD, #00C2CB)
+	$surface: #062D44
+	$primary: #0A6EBD
+	$text: #E9F8FF
+	$link: #00C2CB
+	$row-even: #093851
+	$row-odd: #062D44
+	$row-hover: #00C2CB29
+	$warning: #E63946
+}
+</style>

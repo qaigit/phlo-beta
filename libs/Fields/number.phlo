@@ -1,0 +1,18 @@
+@ extends:     field
+@ class:       field_number
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: CMS number field
+
+prop decimals = 0
+prop length = 5
+prop min = 0
+
+method label($record, $CMS) => number_format($record->{$this->name}, $this->decimals, comma, dot)
+method input($record, $CMS) => input(type: 'number', name: $this->name, value: $record->{$this->name} ?? $this->default, step: $this->decimals ? dot.str_repeat('0', $this->decimals - 1).'1' : null, min: $this->min, class: 'field')
+
+method sql => "`$this->name` ".($this->decimals ? 'decimal('.($this->length + $this->decimals).comma.$this->decimals.')' : "smallint($this->length)").' unsigned'
+
+<style>
+.label.number, .input.number input: text-align: right
+</style>

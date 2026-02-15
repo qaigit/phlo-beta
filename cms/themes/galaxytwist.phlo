@@ -1,0 +1,13 @@
+<style ns=theme.galaxytwist>
+:root {
+	$background: linear-gradient(to bottom, #654EA3, #EAafc8)
+	$surface: #442B76
+	$primary: #654EA3
+	$text: #FFFFFF
+	$link: #FFF5F9
+	$row-even: #533B90
+	$row-odd: #442B76
+	$row-hover: #EAAFC829
+	$warning: #FF4B5C
+}
+</style>

@@ -1,0 +1,42 @@
+@ class: widget_bar
+
+view => tag (
+	'div',
+	void,
+	class: 'bar',
+	data_price: "$this->price" ?: null,
+	data_labels: implode(comma, array_keys($this->data)),
+	data_series: implode(comma, $this->data),
+)
+
+<script>
+widget.init.bar = (data) => ({
+	tooltip: {
+		trigger: 'axis',
+		valueFormatter: (value) => widget.format(value, data.price)
+	},
+	grid: {
+		top: '20px',
+		left: '80px',
+		right: '40px',
+		bottom: '30px'
+	},
+	xAxis: {
+		type: 'category',
+		data: data.labels.split(','),
+	},
+	yAxis: {
+		type: 'value',
+		axisLabel: {
+			formatter: (value) => widget.format(value, data.price)
+		}
+	},
+	series: [
+		{
+			data: data.series.split(','),
+			type: 'bar',
+			itemStyle: {color: app.var.primary}
+		}
+	]
+})
+</script>

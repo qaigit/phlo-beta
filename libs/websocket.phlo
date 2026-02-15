@@ -1,0 +1,9 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: Serverside WebSocket handler via PhloWS. Enable this class if you enable websockets for your host!
+
+#serverside:
+static connect($token) => function_exists('wsConnect') && wsConnect($token)
+static auth($token) => function_exists('wsAuth') && wsAuth($token)
+static receive($token, $data) => function_exists('wsReceive') && wsReceive($token, ...json_decode($data, true))
+static close($token) => function_exists('wsClose') && wsClose($token)

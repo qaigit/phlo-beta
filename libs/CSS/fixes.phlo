@@ -1,0 +1,13 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: Single Page App basic CSS boilerplate fixes
+
+<style>
+*, ::before, ::after: box-sizing: border-box
+a, area, button, input, label, select, summary, textarea, [tabindex]: touch-action: manipulation
+button:focus, input:focus, select:focus, textarea:focus, [contenteditable]:focus: outline: 0
+input::-webkit-outer-spin-button, input::-webkit-inner-spin-button: -webkit-appearance: none
+input[type="number"]: -moz-appearance: textfield
+table: border-collapse: collapse
+::-ms-expand: display: none
+</style>

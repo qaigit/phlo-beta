@@ -1,0 +1,29 @@
+@ extends:     field
+@ class:       field_child
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: CMS model child relation field
+
+prop list = 'count'
+prop change = false
+prop create = false
+prop record = 'list'
+
+method count($record, $CMS) => tag('a', href: slash.$CMS->uriRecord.slash.$record->id.slash.$this->name, class: 'async', inner: $record->getCount($this->name).space.$this->title)
+method last($record) => $record->getLast($this->name)
+method label($record, $CMS) => implode(loop($record->{$this->name}, fn($child) => $this->link($child, $CMS))) ?: dash
+method input($record, $CMS) => $this->label($record)
+method link($record, $CMS){
+	$parentPath = $CMS->uriRecord.'/'.$record->{$CMS->model}->id;
+	$relationshipName = $this->name;
+	$href = "/{$parentPath}/{$relationshipName}/{$record->id}";
+	return tag('a', href: $href, class: 'async', inner: $record);
+}
+
+<style>
+.label.child {
+	max-height: 100px
+	overflow-y: auto
+	a: display: block
+}
+</style>

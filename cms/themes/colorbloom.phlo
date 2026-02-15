@@ -1,0 +1,13 @@
+<style ns=theme.coralbloom>
+:root {
+	$background: linear-gradient(to bottom, #FF9A8B, #FF6A88, #FF99AC)
+	$surface: #FFF0F2
+	$primary: #FF6A88
+	$text: #520A24
+	$link: #520A24
+	$row-even: #FFE5EB
+	$row-odd: #FFDCE3
+	$row-hover: #FF6A8829
+	$warning: #C92A2A
+}
+</style>

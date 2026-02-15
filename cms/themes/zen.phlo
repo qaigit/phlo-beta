@@ -1,0 +1,13 @@
+<style ns=theme.zen>
+:root {
+	$background: #f1f8e9
+	$surface: #dcedc8
+	$primary: #aed581
+	$text: #33691e
+	$link: #689f38
+	$row-even: #dcedc8
+	$row-odd: #f1f8e9
+	$row-hover: #aed58129
+	$warning: #d32f2f
+}
+</style>

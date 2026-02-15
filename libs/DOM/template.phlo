@@ -1,0 +1,9 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: Single Page App client side templating
+@ advice:      Add cb's to the templates object and output via apply(template: [$name => $rows, $name2 => $rows2, etc])
+
+<script>
+app.mod.template = (template, rows) => rows.forEach(row => templates[template](...Object.values(row))),
+const templates = {}
+</script>

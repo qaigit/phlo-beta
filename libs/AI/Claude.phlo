@@ -1,0 +1,57 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: Antrophic Claude API (beta)
+
+@ requires:    creds:Claude
+
+static context(...$args){
+	$args['messages'] ??= []
+	if (isset($args['assistant']) && array_push($args['messages'], arr(role: 'assistant', content: $args['assistant']))) unset($args['assistant'])
+	if (isset($args['user']) && array_push($args['messages'], arr(role: 'user', content: $args['user']))) unset($args['user'])
+	return $args
+}
+
+method chat(...$args){
+	$args = static::context(...$args)
+	$args['model'] ??= 'claude-3-5-sonnet-latest'
+	$args['max_tokens'] ??= 3333
+	$res = $this->request('messages', true, POST: $args)
+	return obj(answer: $res->content[0]->text)
+}
+
+method stream(...$args){
+	%app->streaming = true
+	$args = static::context(...$args)
+	$args['model'] ??= 'claude-3-5-sonnet-latest'
+	$args['max_tokens'] ??= 3333
+	$args['stream'] = true
+	if (isset($args['cb'])){
+		$cb = $args['cb']
+		unset($args['cb'])
+	}
+	else {
+		cli || header('Content-Type: text/event-stream')
+		$cb = fn($data) => last(($text = $data->delta->text ?? void) === void || [print($text), cli || [ob_flush(), flush()]], $text)
+	}
+	$answer = void
+	$curl = curl_init('https://api.anthropic.com/v1/messages')
+	curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST')
+	curl_setopt($curl, CURLOPT_POSTFIELDS, $data = json_encode($args))
+	curl_setopt($curl, CURLOPT_HTTPHEADER, ['anthropic-version: 2023-06-01', 'Content-Type: application/json', 'Content-Length: '.strlen($data), 'X-Api-Key: '.%creds->Claude])
+	curl_setopt($curl, CURLOPT_WRITEFUNCTION, function($curl, $data) use ($cb, &$answer){
+		foreach (array_filter(explode(lf.lf, $data)) AS $chunk){
+			$obj = json_decode(substr($chunk, strpos($chunk, 'data: {') + 6))
+			$res = $cb($obj, $obj->delta->text ?? null)
+			if (is_string($res)) $answer .= $res
+		}
+		return strlen($data)
+	})
+	curl_exec($curl)
+	return $answer
+}
+
+method request($uri, $JSON = true, ...$args){
+	$res = json_decode(HTTP("https://api.anthropic.com/v1/$uri", ['anthropic-version: 2023-06-01', 'Content-Type: application/json', 'X-Api-Key: '.%creds->Claude], $JSON, ...$args))
+	if (isset($res->error)) error('Claude Request error: '.$res->error->message)
+	return $res
+}

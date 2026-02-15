@@ -1,0 +1,9 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: onChange, onClick and onInput event shorthands
+
+<script>
+function onChange(els, cb){ on('change', els, cb) }
+function onClick(els, cb){ on('click', els, cb) }
+function onInput(els, cb){ on('input', els, cb) }
+</script>

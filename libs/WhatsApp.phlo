@@ -1,0 +1,24 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: WhatsApp handler for PhloWA via Open-WA
+
+method number($contact) => ($pos = strpos($contact, '@')) ? substr($contact, 0, $pos) : error('Invalid contact: '.esc($contact))
+method isGroup($contact) => last($this->number($contact), (bool)strpos($contact, '@g'))
+
+method read($chat) => $this->request('read', chat: $chat)
+method reaction($msg, $emoji) => $this->request('reaction', msg: $msg, emoji: $emoji)
+
+method text($to, $text) => $this->request('text', to: $to, text: $text)
+method image($to, file $file, $text = void) => $this->request('image', to: $to, filename: $file->name, image: $file->src, text: $text)
+method location($to, $lat, $lon, $text) => $this->request('location', to: $to, lat: $lat, lon: $lon, text: $text)
+method document($to, file $file, $text = void) => $this->request('document', to: $to, filename: $file->name, document: $file->src, text: $text)
+
+method audio($to, file $file) => $this->request('audio', to: $to, audio: $file->src)
+method voice($to, file $file) => $this->request('voice', to: $to, audio: $file->src)
+
+method poll($to, $name, array $options, bool $multi = false) => $this->request('poll', to: $to, name: $name, options: $options, multi: $multi)
+
+method startTyping($to) => $this->request('typing/start', to: $to)
+method stopTyping($to) => $this->request('typing/stop', to: $to)
+
+method request($action, ...$data) => HTTP(%creds->whatsapp->server.$action, ['secret: '.%creds->whatsapp->secret], true, $data) === 'ok'

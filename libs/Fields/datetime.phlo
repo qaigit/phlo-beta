@@ -1,0 +1,30 @@
+@ extends:     field
+@ class:       field_datetime
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: CMS date-time field
+
+prop handle = true
+prop change => !in_array($this->name, ['created', 'changed'])
+prop create => !in_array($this->name, ['created', 'changed'])
+
+method label($record, $CMS) => ($value = $record->{$this->name}) ? tag('i', class: 'icon clock-'.$this->labelIconClass(time() - $value), inner: void).tag('span', data_ts: $record->{$this->name}, inner: time_human($record->{$this->name})) : dash
+method labelIconClass($value) => $value > 86400 ? 'red' : ($value > 3600 ? 'yellow' : 'blue')
+method input($record, $CMS) => input(type: 'datetime-local', name: $this->name, value: date('Y-m-d\TH:i', $record->{$this->name}), class: 'field')
+method parse($record){
+	if ($this->name === 'created') $record->created ??= time()
+	elseif ($this->name === 'changed') $record->{$this->name} = time()
+	elseif ($payload = %payload->{$this->name}) $record->{$this->name} = strtotime($payload)
+}
+
+method sql => "`$this->name` int(10) unsigned"
+
+<style>
+.label.datetime {
+	white-space: nowrap
+	.icon: \.clock-blue, \.clock-yellow, \.clock-red {
+		float: left
+		margin-top: .4em !important
+	}
+}
+</style>

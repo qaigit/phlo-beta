@@ -1,0 +1,13 @@
+<style ns=theme.sunfall>
+:root {
+	$background: linear-gradient(to bottom, #362362 0%, #95378C 40%, #FF6A3D 75%, #FFD23F 100%)
+	$surface: #3E2E4C
+	$primary: #FF6A3D
+	$text: #FFF8F0
+	$link: #FFD23F
+	$row-even: #472D5B
+	$row-odd: #3A244C
+	$row-hover: #FF6A3D29
+	$warning: #FF3B3B
+}
+</style>

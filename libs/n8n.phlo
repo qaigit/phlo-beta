@@ -1,0 +1,6 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: Simple n8n functions
+
+function n8n($webhook, ?array $data = null, $test = false) => HTTP(%creds->n8n->server.'webhook'.($test ? '-test' : '').'/'.$webhook, POST: $data)
+function n8n_test($webhook, ?array $data = null) => n8n($webhook, $data, true)

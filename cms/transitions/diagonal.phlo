@@ -1,0 +1,25 @@
+<style ns=trans.diagonal>
+html.diagonal {
+	main: view-transition-name: main
+	\.forward::view-transition-old(main): animation: 333ms linear wipe-out both
+	\.forward::view-transition-new(main): animation: 333ms linear wipe-in both
+	\.back::view-transition-old(main): animation: 333ms linear wipe-out-reverse both
+	\.back::view-transition-new(main): animation: 333ms linear wipe-in-reverse both
+}
+@keyframes wipe-out {
+	0%: clip-path: polygon(-10% 0%, 110% 0%, 100% 100%, -20% 100%)
+	100%: clip-path: polygon(110% 0%, 120% 0%, 110% 100%, 100% 100%)
+}
+@keyframes wipe-in {
+	0%: clip-path: polygon(-20% 0%, -10% 0%, -20% 100%, -30% 100%)
+	100%: clip-path: polygon(-10% 0%, 110% 0%, 100% 100%, -20% 100%)
+}
+@keyframes wipe-out-reverse {
+	0%: clip-path: polygon(-10% 0%, 110% 0%, 120% 100%, 0% 100%)
+	100%: clip-path: polygon(-20% 0%, -10% 0%, 0% 100%, -10% 100%)
+}
+@keyframes wipe-in-reverse {
+	0%: clip-path: polygon(110% 0%, 120% 0%, 130% 100%, 120% 100%)
+	100%: clip-path: polygon(-10% 0%, 110% 0%, 120% 100%, 0% 100%)
+}
+</style>

@@ -1,0 +1,13 @@
+<style ns=theme.lightgrid>
+:root {
+	$background: #fafafa
+	$surface: #ffffff
+	$primary: #9333ea
+	$text: #111827
+	$link: #a855f7
+	$row-even: #f3f4f6
+	$row-odd: #ffffff
+	$row-hover: #9333ea29
+	$warning: #f43f5e
+}
+</style>

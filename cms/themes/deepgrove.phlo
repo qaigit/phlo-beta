@@ -1,0 +1,13 @@
+<style ns=theme.deepgrove>
+:root {
+	$background: linear-gradient(to bottom, #03110a, #062518, #0b3a25)
+	$surface: #082e1e
+	$primary: #6ee7b7
+	$text: #e9fff6
+	$link: #a7ffdb
+	$row-even: #0f3f2a
+	$row-odd: #041811
+	$row-hover: #6ee7b729
+	$warning: #ef4444
+}
+</style>

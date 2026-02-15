@@ -1,0 +1,13 @@
+<style ns=theme.synthdream>
+:root {
+	$background: linear-gradient(to bottom, #ff00c8, #b300ff, #4400ff)
+	$surface: #2a007a
+	$primary: #ff67ff
+	$text: #ffeaff
+	$link: #ffd6ff
+	$row-even: #350098
+	$row-odd: #1b004b
+	$row-hover: #ff67ff29
+	$warning: #ff3366
+}
+</style>

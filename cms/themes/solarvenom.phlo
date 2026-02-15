@@ -1,0 +1,13 @@
+<style ns=theme.solarvenom>
+:root {
+	$background: linear-gradient(to bottom, #050007, #280015, #4b0310, #7a1a00)
+	$surface: #24000a
+	$primary: #ffdd35
+	$text: #ffece0
+	$link: #ffb347
+	$row-even: #350012
+	$row-odd: #190008
+	$row-hover: #ffdd3529
+	$warning: #ff1744
+}
+</style>

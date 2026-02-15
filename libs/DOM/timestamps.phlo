@@ -1,0 +1,23 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: DOM live timestamps
+@ advice:      Create an app.tsLabels array to overwrite the tsBase labels in any language
+
+<script>
+app.tsBase = {seconds: 60, minutes: 60, hours: 24, days: 7, weeks: 4, months: 13, years: 1}
+const tsUpdate = () => (ranges = app.tsLabels && (tsValues = Object.values(app.tsBase)) ? Object.fromEntries(app.tsLabels.map((k, i) => [k, tsValues[i]])) : app.tsBase) && objects('[data-ts]').forEach(el => {
+	let age = Math.round(Date.now() / 1000) - Number(el.dataset.ts), text = ''
+	const future = age < 0
+	if (future) age = -age
+	for (const [range, multiplier] of Object.entries(ranges)){
+		if (text) continue
+		if (age / multiplier < 1.6583) text = `${Math.round(age)} ${range}`
+		age /= multiplier
+	}
+	text ||= `${Math.round(age)} ${Object.keys(ranges).at(-1)}`
+	text = `${future ? '-' : ''}${text}`
+	el.innerText === text || (el.innerText = text)
+})
+setInterval(() => document.hidden || tsUpdate(), 1000)
+setTimeout(tsUpdate, 1)
+</script>

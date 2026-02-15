@@ -1,0 +1,17 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: onVisible and onVisibleIn (for nested scrolling DOM elements) functions
+
+<script>
+phlo.observe = []
+phlo.observing = new WeakMap
+
+const onVisible = (els, cbIn, cbOut) => onVisibleIn(els, null, cbIn, cbOut)
+const onVisibleIn = (els, root, cbIn, cbOut) => phlo.observe.push({els, root, cbIn, cbOut})
+
+app.updates.push(() => {
+	const observers = []
+	phlo.observe.forEach(item => objects(item.els).forEach(el => phlo.observing.has(el) || observers.push({el, root: item.root, cbIn: item.cbIn, cbOut: item.cbOut})))
+	observers.forEach(item => [phlo.observing.has(item.el) || phlo.observing.set(item.el, 'observe'), (observer = new IntersectionObserver(entries => entries.forEach(entry => entry.isIntersecting ? !item.cbIn && item.cbOut ? [observer.unobserve(entry.target), item.cbOut(entry.target)] : item.cbIn(entry.target) : item.cbIn && item.cbOut && item.cbOut(entry.target)), {root: obj(item.root), threshold: .1})).observe(item.el)])
+})
+</script>

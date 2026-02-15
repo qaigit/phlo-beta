@@ -1,0 +1,13 @@
+<style ns=theme.terra>
+:root {
+	$background: #f5efe0
+	$surface: #d2b48c
+	$primary: #8b4513
+	$text: #2e1a0f
+	$link: #b5651d
+	$row-even: #f0e0c0
+	$row-odd: #fdf6e3
+	$row-hover: #8b451329
+	$warning: #b71c1c
+}
+</style>

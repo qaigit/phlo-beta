@@ -1,0 +1,13 @@
+<style ns=theme.embernight>
+:root {
+	$background: linear-gradient(to bottom, #1a0000, #2d0500, #3f0a00)
+	$surface: #200200
+	$primary: #ff5724
+	$text: #ffece5
+	$link: #ff9e80
+	$row-even: #2a0800
+	$row-odd: #130300
+	$row-hover: #ff572429
+	$warning: #ff1744
+}
+</style>

@@ -1,0 +1,54 @@
+.hl-cmt {
+  color: #bec7d4;
+}
+.hl-string-sq {
+  color: #f4b266;
+}
+.hl-string-dq {
+  color: #a3e635;
+}
+.hl-tag {
+  color: #60a5fa;
+}
+.hl-attr-name {
+  color: #93c5fd;
+}
+.hl-attr-value {
+  color: #c4b5fd;
+}
+.hl-php-func {
+  color: #8ab4ff;
+}
+.hl-phlo-func {
+  color: #fde047;
+}
+.hl-const {
+  color: #c084fc;
+}
+.hl-obj {
+  color: #ffd100;
+}
+.hl-node {
+  color: #bef264;
+}
+.hl-member {
+  color: #34d399;
+}
+.hl-var {
+  color: #82ff9f;
+}
+.hl-key {
+  color: #f9a8d4;
+}
+.hl-number {
+  color: #67e8f9;
+}
+.hl-operator {
+  color: #ff3ae1;
+}
+.hl-classop {
+	color: #fca5a5;
+}
+.hl-objop {
+	color: #fda4af;
+}

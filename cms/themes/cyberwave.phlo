@@ -1,0 +1,13 @@
+<style ns=theme.cyberwave>
+:root {
+	$background: linear-gradient(to bottom, #020617, #001f3f, #003f5c)
+	$surface: #041020
+	$primary: #00fff0
+	$text: #e6fbff
+	$link: #7cf9ff
+	$row-even: #071729
+	$row-odd: #030a15
+	$row-hover: #00fff029
+	$warning: #ff3366
+}
+</style>

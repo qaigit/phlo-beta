@@ -1,0 +1,13 @@
+<style ns=theme.nightsun>
+:root {
+	$background: linear-gradient(to bottom, #3A7DFF 0%, #1834C9 50%, #02073E 100%)
+	$surface: #101750
+	$primary: #3A7DFF
+	$text: #FFFFFF
+	$link: #FFA500
+	$row-even: #0A1040
+	$row-odd: #060B30
+	$row-hover: #FFA50029
+	$warning: #FF3B3B
+}
+</style>

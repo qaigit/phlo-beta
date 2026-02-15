@@ -1,0 +1,13 @@
+<style ns=theme.mocha>
+:root {
+	$background: #3e2723
+	$surface: #4e342e
+	$primary: #6d4c41
+	$text: #fbe9e7
+	$link: #ffab91
+	$row-even: #5d4037
+	$row-odd: #4e342e
+	$row-hover: #ffab9129
+	$warning: #d84315
+}
+</style>

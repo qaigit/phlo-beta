@@ -1,0 +1,13 @@
+<style ns=theme.glacierfall>
+:root {
+	$background: linear-gradient(to bottom, #e8faff, #d5f2ff, #bce8ff)
+	$surface: #ffffff
+	$primary: #0ea5e9
+	$text: #0f172a
+	$link: #0284c7
+	$row-even: #e0f5ff
+	$row-odd: #f1faff
+	$row-hover: #0ea5e929
+	$warning: #dc2626
+}
+</style>

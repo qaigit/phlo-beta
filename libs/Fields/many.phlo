@@ -1,0 +1,25 @@
+@ extends:     field
+@ class:       field_many
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: CMS model many-to-many relation field
+
+prop list = 'label'
+prop record = 'label'
+prop create = false
+prop change = false
+
+method count($record) => $record->getCount($this->name)
+method label($record, $CMS) => loop($record->{$this->name}, fn($relation) => $this->link($relation), lf) ?: dash
+method link($record) => tag('a', href: slash.($record::$uriRecord ?? $record::class).slash.$record->id, class: 'async', inner: $record)
+method input($record, $CMS) => $this->label($record, $CMS)
+
+method sql => []
+
+<style>
+.label.many: flex-wrap: wrap
+.label.many a {
+	display: block
+	width: 100%
+}
+</style>

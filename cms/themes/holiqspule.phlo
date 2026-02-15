@@ -1,0 +1,13 @@
+<style ns=theme.holiqspulse>
+:root {
+	$background: linear-gradient(to bottom, #0d0717, #160c33, #1e0f47)
+	$surface: #140a2b
+	$primary: #d4b483
+	$text: #f9f3eb
+	$link: #ffe2b3
+	$row-even: #1c0f38
+	$row-odd: #0d061a
+	$row-hover: #d4b48329
+	$warning: #ff4a4a
+}
+</style>

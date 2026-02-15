@@ -1,0 +1,13 @@
+<style ns=theme.orba>
+:root {
+	$background: #190c00
+	$surface: #332211
+	$primary: #ff6f00
+	$text: #ffeedb
+	$link: #ff9800
+	$row-even: #2e1500
+	$row-odd: #1e1000
+	$row-hover: #ff980029
+	$warning: #ff3d00
+}
+</style>

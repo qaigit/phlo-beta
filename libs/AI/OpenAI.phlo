@@ -1,0 +1,100 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: Basic OpenAI functions
+
+@ requires:    creds:OpenAI
+
+const model = 'gpt-4o-mini'
+const voices = ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer']
+
+static context(...$args):array {
+	$args['messages'] ??= []
+	if (isset($args['system']) && array_unshift($args['messages'], arr(role: 'system', content: $args['system']))) unset($args['system'])
+	if (isset($args['assistant']) && array_push($args['messages'], arr(role: 'assistant', content: $args['assistant']))) unset($args['assistant'])
+	if (isset($args['user']) && array_push($args['messages'], arr(role: 'user', content: $args['user']))) unset($args['user'])
+	return $args
+}
+
+static tool($tool):array => arr (
+	type: 'function',
+	function: arr (
+		name: $tool->name,
+		description: $tool->desc,
+		parameters: arr (
+			type: 'object',
+			properties: loop($tool->args, fn($data, $arg) => array_filter($data, fn($key) => in_array($key, ['type', 'enum', 'desc']), ARRAY_FILTER_USE_KEY)),
+			additionalProperties: false,
+			required: array_keys($tool->args),
+		),
+		strict: true,
+	),
+)
+
+method chat(...$args):obj {
+	$args['model'] ??= static::model
+	$args = static::context(...$args)
+	$res = $this->request('chat/completions', POST: $args)
+	$return = obj(model: $res->model, finish: $res->choices[0]->finish_reason, tokens: $res->usage->total_tokens, tokens_in: $res->usage->prompt_tokens, tokens_out: $res->usage->completion_tokens)
+	if (isset($res->choices[0]->message->tool_calls)) $return->tools = loop($res->choices[0]->message->tool_calls, fn($tool) => obj(name: $tool->function->name, args: json_decode($tool->function->arguments, true)))
+	else $return->answer = $res->choices[0]->message->content
+	return $return
+}
+
+method embedding($input, $model = 'text-embedding-3-small') => $this->request('embeddings', POST: arr(input: $input, model: $model))->data[0]->embedding
+
+method stream(...$args):string {
+	%app->streaming = true
+	$args['model'] ??= static::model
+	$args = static::context(...$args)
+	$args['stream'] = true
+	if (isset($args['cb'])){
+		$cb = $args['cb']
+		unset($args['cb'])
+	}
+	else {
+		cli || header('Content-Type: text/event-stream')
+		$cb = fn($text) => last(print($text), cli || [@ob_flush(), flush()], $text)
+	}
+	$answer = void
+	$buffer = void
+	$curl = curl_init('https://api.openai.com/v1/chat/completions')
+	curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST')
+	curl_setopt($curl, CURLOPT_POSTFIELDS, $payload = json_encode($args))
+	curl_setopt($curl, CURLOPT_HTTPHEADER, ['Authorization: Bearer '.%creds->OpenAI, 'Content-Type: application/json', 'Content-Length: '.strlen($payload)])
+	curl_setopt($curl, CURLOPT_WRITEFUNCTION, function($curl, $data) use ($cb, &$buffer, &$answer){
+		$chunks = trim($buffer.$data)
+		$buffer = void
+		foreach (explode(lf.lf, $chunks) AS $chunk){
+			if ($obj = json_decode(substr($chunk, 6))) in_array($text = $obj->choices[0]->delta->content ?? null, [null, void]) || $answer .= $cb($text, $obj)
+			else $buffer = $chunk
+		}
+		return strlen($data)
+	})
+	curl_exec($curl)
+	return $answer
+}
+
+method transcribe($file, $model = 'whisper-1', ...$args):obj {
+	if (is_string($file)) $file = new CURLFile($file)
+	elseif (is_a($file, 'file')) $file = $file->curl
+	$res = $this->request('audio/transcriptions', false, POST: arr(...$args, model: $model, file: $file, response_format: 'verbose_json'))
+	return obj (
+		model: $model,
+		duration: $res->duration,
+		lang: $res->language,
+		text: $res->text,
+	)
+}
+
+method vision($text, $image, $stream = false, ...$args):obj {
+	$args['model'] ??= static::model
+	$messages = [arr(role: 'user', content: [arr(type: 'text', text: $text), arr(type: 'image_url', image_url: arr(url: $image))])]
+	if ($stream) return $this->stream(...$args, messages: $messages)
+	else return $this->chat(...$args, messages: $messages)
+}
+
+method request($uri, $JSON = true, ...$args){
+	$res = json_decode(HTTP("https://api.openai.com/v1/$uri", ['Authorization: Bearer '.%creds->OpenAI], $JSON, ...$args))
+	if (isset($res->error)) error('OpenAI Request error:'.lf.$res->error->message)
+	return $res
+}

@@ -1,0 +1,13 @@
+<style ns=theme.qdev>
+:root {
+	$background: #ffffff
+	$surface: #f3f3f3
+	$primary: #ff1a1a
+	$text: #111111
+	$link: #d40000
+	$row-even: #f9f9f9
+	$row-odd: #ffffff
+	$row-hover: #ff1a1a29
+	$warning: #c80000
+}
+</style>

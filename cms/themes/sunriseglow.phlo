@@ -1,0 +1,13 @@
+<style ns=theme.sunriseglow>
+:root {
+	$background: linear-gradient(to bottom, #FEE9AE, #FFB99A, #FF6A88)
+	$surface: #FFF5EB
+	$primary: #FF6A88
+	$text: #5C1A1A
+	$link: #FF9E6D
+	$row-even: #FFE7D8
+	$row-odd: #FFE0CD
+	$row-hover: #FF6A8829
+	$warning: #D72638
+}
+</style>

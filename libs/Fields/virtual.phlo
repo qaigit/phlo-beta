@@ -1,0 +1,10 @@
+@ extends:     field
+@ class:       field_virtual
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: CMS virtual field
+
+prop create = false
+prop change = false
+
+method sql => []

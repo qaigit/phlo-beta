@@ -1,0 +1,26 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: Phlo await library for parallel processes
+
+function await(...$jobs){
+	$children = []
+	foreach ($jobs AS $i => $job){
+		[$cb, $args] = is_array($job) ? [$job[0], array_slice($job, 1)] : [$job, []]
+		$cmd = '/usr/bin/php '.escapeshellarg(rtrim(www, slash).'/app.php').space.escapeshellarg($cb).loop($args, fn($a) => space.escapeshellarg((string)$a), void)
+		$desc = [0 => ['pipe','r'], 1 => ['pipe','w'], 2 => ['pipe','w']]
+		$proc = proc_open($cmd, $desc, $pipes)
+		fclose($pipes[0])
+		$children[$i] = obj(proc: $proc, out: $pipes[1], err: $pipes[2])
+	}
+	$results = []
+	foreach ($children AS $i => $child){
+		$out = stream_get_contents($child->out)
+		$err = stream_get_contents($child->err)
+		fclose($child->out)
+		fclose($child->err)
+		proc_close($child->proc)
+		$json = json_decode($out, true)
+		$results[$i] = $err ?: $json
+	}
+	return $results
+}

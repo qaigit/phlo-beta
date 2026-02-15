@@ -1,0 +1,13 @@
+@ type:        abstract class
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: ORM field
+
+function field($type, ...$args) => phlo("field_$type", ...$args, type: $type)
+
+static __handle => null
+
+prop title => ucfirst($this->name)
+
+method input($record, $CMS) => input(type: $this->type, name: $this->name, value: $record->{$this->name} ?? $this->default, maxlength: $this->length, placeholder: $this->placeholder, class: 'field')
+method label($record, $CMS) => $record->{$this->name};

@@ -1,0 +1,13 @@
+<style ns=theme.desertmirage>
+:root {
+	$background: linear-gradient(to bottom, #D79922, #EFE2BA, #ACD8AA)
+	$surface: #F5F1E3
+	$primary: #D79922
+	$text: #4D3A00
+	$link: #38AA33
+	$row-even: #F4EBD0
+	$row-odd: #EFE2BA
+	$row-hover: #D7992229
+	$warning: #E63946
+}
+</style>

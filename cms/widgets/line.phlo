@@ -1,0 +1,42 @@
+@ class: widget_line
+
+view => tag (
+	'div',
+	void,
+	class: 'line',
+	data_price: "$this->price" ?: null,
+	data_name: $this->name ?? 'Omzet',
+	data_labels: implode(',', array_keys($this->data)),
+	data_series: implode(',', array_values($this->data)),
+)
+
+<script>
+widget.init.line = (data) => ({
+	tooltip: {
+		trigger: 'axis',
+		valueFormatter: (value) => widget.format(value, data.price)
+	},
+	grid: {
+		top: '20px',
+		left: '80px',
+		right: '40px',
+		bottom: '30px'
+	},
+	xAxis: {
+		type: 'category',
+		boundaryGap: false,
+		data: data.labels.split(',')
+	},
+	yAxis: {
+		type: 'value',
+		axisLabel: {formatter: (value) => widget.format(value, data.price)}
+	},
+	series: [{
+		name: data.name,
+		type: 'line',
+		smooth: true,
+		data: data.series.split(','),
+		lineStyle: {color: app.var.primary}
+	}]
+})
+</script>

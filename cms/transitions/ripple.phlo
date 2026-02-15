@@ -1,0 +1,57 @@
+<style ns=trans.ripple>
+html.ripple {
+	main: view-transition-name: main
+	\::view-transition-old(main): animation: 250ms ease ripple-out both
+	\::view-transition-new(main): animation: 250ms ease ripple-in both
+	\.back::view-transition-old(main): animation: 250ms ease ripple-out-reverse both
+	\.back::view-transition-new(main): animation: 250ms ease ripple-in-reverse both
+}
+@keyframes ripple-out {
+	0% {
+		opacity: 1
+		transform: scale(1)
+		filter: blur(0px)
+	}
+	100% {
+		opacity: 0
+		transform: scale(1.5)
+		filter: blur(3px)
+	}
+}
+@keyframes ripple-in {
+	0% {
+		opacity: 0
+		transform: scale(.5)
+		filter: blur(3px)
+	}
+	100% {
+		opacity: 1
+		transform: scale(1)
+		filter: blur(0px)
+	}
+}
+@keyframes ripple-out-reverse {
+	0% {
+		opacity: 1
+		transform: scale(1)
+		filter: blur(0px)
+	}
+	100% {
+		opacity: 0
+		transform: scale(.5)
+		filter: blur(3px)
+	}
+}
+@keyframes ripple-in-reverse {
+	0% {
+		opacity: 0
+		transform: scale(1.5)
+		filter: blur(3px)
+	}
+	100% {
+		opacity: 1
+		transform: scale(1)
+		filter: blur(0px)
+	}
+}
+</style>

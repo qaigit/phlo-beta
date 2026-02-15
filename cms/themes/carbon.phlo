@@ -1,0 +1,13 @@
+<style ns=theme.carbon>
+:root {
+	$background: #1c1c1e
+	$surface: #2c2c2e
+	$primary: #3a3a3c
+	$text: #f2f2f7
+	$link: #0a84ff
+	$row-even: #2c2c2e
+	$row-odd: #1c1c1e
+	$row-hover: #0a84ff29
+	$warning: #ff453a
+}
+</style>

@@ -1,0 +1,13 @@
+<style ns=theme.vaporcity>
+:root {
+	$background: linear-gradient(to bottom, #ff9a8b, #ff6a88, #ff99ac)
+	$surface: #552d40
+	$primary: #ff6a88
+	$text: #fff1f5
+	$link: #ffd6e0
+	$row-even: #6d3b54
+	$row-odd: #472737
+	$row-hover: #ff6a8829
+	$warning: #ff355a
+}
+</style>

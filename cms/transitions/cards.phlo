@@ -1,0 +1,63 @@
+<style ns=trans.cards>
+html.cards {
+	main: view-transition-name: main
+	\::view-transition-old(main){
+		animation: 400ms ease scale-down both
+		mix-blend-mode: normal
+		z-index: 1
+	}
+	\::view-transition-new(main){
+		animation: 400ms cubic-bezier(0.2, 0, 0.2, 1) slide-up both
+		box-shadow: 0 -10px 40px rgba(0,0,0,0.5)
+		mix-blend-mode: normal
+		z-index: 2
+	}
+	\.back::view-transition-old(main){
+		animation: 400ms cubic-bezier(0.2, 0, 0.2, 1) slide-down both
+		box-shadow: 0 -10px 40px rgba(0,0,0,0.5)
+		z-index: 2
+	}
+	\.back::view-transition-new(main){
+		animation: 400ms ease scale-up both
+		z-index: 1
+	}
+}
+@keyframes slide-up {
+	0%: transform: translateY(100%)
+	100%: transform: translateY(0)
+}
+@keyframes slide-down {
+	0% {
+		transform: translateY(0)
+		opacity: 1
+	}
+	100% {
+		transform: translateY(100%)
+		opacity: 0
+	}
+}
+@keyframes scale-down {
+	0% {
+		transform: scale(1)
+		filter: brightness(1)
+		opacity: 1
+	}
+	100% {
+		transform: scale(0.95)
+		filter: brightness(0.7)
+		opacity: 0
+	}
+}
+@keyframes scale-up {
+	0% {
+		transform: scale(0.95)
+		filter: brightness(0.7)
+		opacity: 0
+	}
+	100% {
+		transform: scale(1)
+		filter: brightness(1)
+		opacity: 1
+	}
+}
+</style>

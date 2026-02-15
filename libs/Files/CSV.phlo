@@ -1,0 +1,21 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: CSV reader library
+
+static __handle => "CSV/$path$filename"
+method __construct(string $filename, ?string $path = null){
+	$path ??= data
+	$this->objFile = $path.strtr($filename, [slash => dot]).'.csv'
+	if (is_readable($this->objFile)) $this->objRead()
+}
+
+readonly objFile:string
+
+method objRead {
+	$fp = fopen($this->objFile, 'r+')
+	$headers = str_replace([dq, cr, lf], void, fgets($fp))
+	$delimiter = substr_count($headers, comma) > substr_count($headers, semi) ? comma : semi
+	$headers =  explode($delimiter, $headers)
+	while ($row = fgetcsv($fp, null, $delimiter)) $this->objData[] = array_combine($headers, $row)
+	fclose($fp)
+}

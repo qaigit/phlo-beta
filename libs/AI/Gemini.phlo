@@ -1,0 +1,73 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: Basic Gemini image functions (experimental)
+
+@ requires:    creds:Gemini
+
+method config($modalities) => arr(temperature: 1, topK: 40, topP: .95, maxOutputTokens: 8192, response_modalities: $modalities, response_mime_type: 'text/plain')
+
+method change($prompt, $base64, $type = 'image/jpeg') => $this->respond (
+	json_decode (
+		HTTP (
+			'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key='.%creds->Gemini,
+			JSON: true,
+			POST: arr (
+				contents: [
+					arr(role: 'user', parts: [arr(inlineData: arr(data: $base64, mimeType: $type))]),
+					arr(role: 'user', parts: [arr(text: $prompt)]),
+				],
+				generationConfig: $this->config(['image', 'text']),
+			),
+		),
+	),
+)
+
+method create($prompt) => $this->respond (
+	json_decode (
+		HTTP (
+			'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key='.%creds->Gemini,
+			JSON: true,
+			POST: arr (
+				contents: [
+					arr(role: 'user', parts: [arr(text: $prompt)]),
+				],
+				generationConfig: $this->config(['image', 'text']),
+			),
+		),
+	),
+)
+
+method info($prompt, $base64, $type = 'image/jpeg') => $this->respond (
+	json_decode (
+		HTTP (
+			'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent?key='.%creds->Gemini,
+			JSON: true,
+			POST: arr (
+				contents: [
+					arr(role: 'user', parts: [arr(inlineData: arr(data: $base64, mimeType: $type))]),
+					arr(role: 'user', parts: [arr(text: $prompt)]),
+				],
+				generationConfig: $this->config(['text']),
+			),
+		),
+	),
+)
+
+method request {
+	$ch = curl_init()
+	curl_setopt($ch, CURLOPT_URL, 'https://mijnip.nl/')
+	curl_setopt($ch, CURLOPT_PROXY, '143.198.231.248:8888')
+	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true)
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true)
+	curl_setopt($ch, CURLOPT_HEADER, true)
+	$res = curl_exec($ch)
+	curl_close($ch)
+	return $res
+}
+
+method respond($res){
+	if ($res->candidates[0]->finishReason === 'IMAGE_SAFETY') return 'I\'m affraid I can\'t process your image or command, it seems unsafe.'
+	if ($text = $res->candidates[0]->content->parts[0]->text ?? null) return $text
+	if ($data = $res->candidates[0]->content->parts[0]->inlineData ?? null) return $data
+	return 'Some error occured processing your request, please try again later.'
+}

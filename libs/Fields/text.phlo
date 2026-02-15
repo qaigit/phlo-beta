@@ -1,0 +1,16 @@
+@ extends:     field
+@ class:       field_text
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: CMS text field
+
+prop length = 100
+prop multiline => $this->length > 250
+
+method label($record, $CMS) => last($value = $record->{$this->name}, strtr(strlen($value) > 100 ? substr($value, 0, 80).'...' : $value, [lf => br]))
+
+method input($record, $CMS) => $this->multiline ? $this->inputMulti($record) : $this->inputField($record)
+method inputField($record) => input(type: $this->type, name: $this->name, value: ($value = $record->{$this->name}) ? esc($value) : $this->default, maxlength: $this->length, placeholder: $this->placeholder, class: 'field')
+method inputMulti($record) => textarea(name: $this->name, inner: ($value = $record->{$this->name}) ? esc($value) : $this->default ?? void, placeholder: $this->placeholder, class: 'field')
+
+method sql => "`$this->name` varchar($this->length)"

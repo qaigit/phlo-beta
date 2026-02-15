@@ -1,0 +1,8 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: CSS variable name proxy via app.var
+
+<script>
+Object.defineProperty(app, 'var', {get(){return new Proxy({}, {get(_, key){return getComputedStyle(document.documentElement).getPropertyValue(`--${key}`).trim()}, set(_, key, value){ return document.documentElement.style.setProperty(`--${key}`, value)}})}, configurable: true})
+app.mod.setvar = (key, value) => app.var[key] = value
+</script>

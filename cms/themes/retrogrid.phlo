@@ -1,0 +1,13 @@
+<style ns=theme.retrogrid>
+:root {
+	$background: linear-gradient(to bottom, #0b001a, #1a0140, #2b0066)
+	$surface: #1a0033
+	$primary: #ffdd35
+	$text: #fff9d9
+	$link: #ffe99f
+	$row-even: #24004b
+	$row-odd: #120022
+	$row-hover: #ffdd3529
+	$warning: #ff1744
+}
+</style>

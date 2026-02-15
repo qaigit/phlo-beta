@@ -1,0 +1,13 @@
+<style ns=theme.volcanicash>
+:root {
+	$background: #0b0b0c
+	$surface: #1a1a1c
+	$primary: #ff6a3d
+	$text: #f7e7e1
+	$link: #ffa37c
+	$row-even: #252527
+	$row-odd: #131314
+	$row-hover: #ff6a3d29
+	$warning: #ff2e2e
+}
+</style>

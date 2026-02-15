@@ -1,0 +1,13 @@
+<style ns=theme.auroradrift>
+:root {
+	$background: linear-gradient(to bottom, #3E1E68, #9E3FFD, #00F5A0)
+	$surface: #2A1C3C
+	$primary: #9E3FFD
+	$text: #FFFFFF
+	$link: #00F5A0
+	$row-even: #34194C
+	$row-odd: #2D153F
+	$row-hover: #9E3FFD29
+	$warning: #FF4D6D
+}
+</style>

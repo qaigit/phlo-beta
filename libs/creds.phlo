@@ -1,0 +1,17 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: INI file credentials handler
+
+method __construct(?array $values = null){
+	$values ??= parse_ini_file(data.'creds.ini', true, INI_SCANNER_RAW)
+	foreach ($values AS $key => $value){
+		$this->$key = is_array($value) ? new static($value) : new SensitiveParameterValue($value)
+	}
+}
+
+method objGet($key){
+	if ($key === 'toArray') return loop($this->objData, fn($value) => is_a($value, 'SensitiveParameterValue') ? $value->getValue() : $value)
+	if (isset($this->objData[$key]) && is_a($this->objData[$key], 'SensitiveParameterValue')) return $this->objData[$key]->getValue()
+}
+
+method objInfo => loop($this->objData, fn($value) => is_a($value, 'SensitiveParameterValue') ? str_repeat('*', strlen($value->getValue())) : $value)

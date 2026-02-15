@@ -1,0 +1,13 @@
+<style ns=theme.ocean>
+:root {
+	$background: #e0f7fa
+	$surface: #b2ebf2
+	$primary: #0097a7
+	$text: #004d40
+	$link: #00bcd4
+	$row-even: #b2ebf2
+	$row-odd: #e0f7fa
+	$row-hover: #00bcd429
+	$warning: #d32f2f
+}
+</style>

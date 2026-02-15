@@ -1,0 +1,13 @@
+<style ns=theme.darknova>
+:root {
+	$background: linear-gradient(to bottom, #00010a, #050521, #0d0b3a)
+	$surface: #0a0a1f
+	$primary: #7f5bff
+	$text: #e6e0ff
+	$link: #b9a8ff
+	$row-even: #0f0d29
+	$row-odd: #060617
+	$row-hover: #7f5bff29
+	$warning: #ff447a
+}
+</style>

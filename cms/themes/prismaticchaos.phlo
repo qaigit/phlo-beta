@@ -1,0 +1,13 @@
+<style ns=theme.prismaticchaos>
+:root {
+	$background: linear-gradient(145deg, #02000a, #001424, #041b1b, #240022)
+	$surface: #060616
+	$primary: #ffea00
+	$text: #f5f8ff
+	$link: #7cfbff
+	$row-even: #111329
+	$row-odd: #080811
+	$row-hover: #ffea0029
+	$warning: #ff295a
+}
+</style>

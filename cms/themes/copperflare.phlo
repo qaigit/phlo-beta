@@ -1,0 +1,13 @@
+<style ns=theme.copperflare>
+:root {
+	$background: linear-gradient(to bottom, #2b0d00, #4d1c0a, #663015)
+	$surface: #3a1808
+	$primary: #ff8a3d
+	$text: #ffe8d9
+	$link: #ffb78a
+	$row-even: #4a210d
+	$row-odd: #2a0f05
+	$row-hover: #ff8a3d29
+	$warning: #ff3b3b
+}
+</style>

@@ -1,0 +1,87 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: GD/img library
+
+static detect($data){
+	$header = substr($data, 0, 12)
+	if (substr($header, 0, 3) === "\xFF\xD8\xFF") return 'jpg'
+	if (substr($header, 0, 8) === "\x89PNG\x0D\x0A\x1A\x0A") return 'png'
+	if (substr($header, 0, 6) === 'GIF87a' || substr($header, 0, 6) === 'GIF89a') return 'gif'
+	if (substr($header, 0, 4) === 'RIFF' && substr($header, 8, 4) === 'WEBP') return 'webp'
+	if (substr($header, 0, 2) === "BM") return 'bmp'
+	if (substr($header, 0, 4) === "\x49\x49\x2A\x00" || substr($header, 0, 4) === "\x4D\x4D\x00\x2A") return 'tiff'
+}
+
+static search($search){
+	$q = strtr($search, [dash => '+'])
+	$DOM = HTTP("http://images.google.it/images?as_q=$q&hl=it&imgtbs=z&btnG=Cerca+con+Google&as_epq=&as_oq=&as_eq=&imgtype=&imgsz=m&imgw=&imgh=&imgar=&as_filetype=&imgc=&as_sitesearch=&as_rights=&safe=images&as_st=y", agent: true)
+	$sources = regex_all('/var s=\'data:image\/jpeg;base64,([^\']{1000,})/', $DOM)[1]
+	usort($sources, fn($a, $b) => strlen($b) <=> strlen($a))
+	$sources = array_slice($sources, 0, 5)
+	shuffle($sources)
+	$source = current($sources)
+	$source = base64_decode($source)
+	return $source
+}
+
+static __handle => "img/$file"
+method __construct(public string $file)
+
+prop src:GdImage => imagecreatefromstring(file_get_contents($this->file))
+prop width => imagesx($this->src)
+prop height => imagesy($this->src)
+
+method scale($width = null, $height = null, $crop = false){
+	if (!$width && !$height) return $this
+	$srcW = $this->width
+	$srcH = $this->height
+	$doCrop = ($crop && $width && $height)
+	if ($width && $height) $scale = $doCrop ? max($width / $srcW, $height / $srcH) : min($width / $srcW, $height / $srcH)
+	elseif ($width) $scale = $width / $srcW
+	else $scale = $height / $srcH
+	if ($scale >= 1) return $this
+	$scaledW = (int)round($srcW * $scale)
+	$scaledH = (int)round($srcH * $scale)
+	$destW = ($width && $height && $doCrop) ? (int)$width : $scaledW
+	$destH = ($width && $height && $doCrop) ? (int)$height : $scaledH
+	$offsetX = 0
+	$offsetY = 0
+	if ($width && $height && $doCrop){
+		$offsetX = (int)-round(($scaledW - $destW) / 2)
+		$offsetY = (int)-round(($scaledH - $destH) / 2)
+		if ($crop === 'top') $offsetY = 0
+		elseif ($crop === 'bottom') $offsetY = (int)-($scaledH - $destH)
+	}
+	$destImg = imagecreatetruecolor($destW, $destH)
+	imagealphablending($destImg, false)
+	imagesavealpha($destImg, true)
+	imagecopyresampled($destImg, $this->src, $offsetX, $offsetY, 0, 0, $scaledW, $scaledH, $srcW, $srcH)
+	$this->src = $destImg
+	$this->width = $destW
+	$this->height = $destH
+	return $this
+}
+
+method ext($file = null) => strtolower(pathinfo($file ?? $this->file, PATHINFO_EXTENSION))
+
+method source($format = null){
+	ob_start()
+	$this->write($format)
+	return ob_get_clean()
+}
+
+method save($file = null){
+	$file && $this->file = $file
+	return $this->write(null, $this->file)
+}
+
+private method write($format = null, $file = null){
+	$format ??= $this->ext()
+	if ($format === 'png') return imagepng($this->src, $file, 8)
+	if ($format === 'gif') return imagegif($this->src, $file)
+	if ($format === 'webp'){
+		imageistruecolor($this->src) || imagepalettetotruecolor($this->src)
+		return imagewebp($this->src, $file)
+	}
+	return imagejpeg($this->src, $file, 85)
+}

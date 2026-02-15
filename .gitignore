@@ -1,0 +1,42 @@
+# Video files
+*.mp4
+
+# Secrets
+**/data/creds.ini
+.env
+.env.*
+
+# Local symlink/tooling
+skills
+
+# Dependencies/build artifacts
+**/node_modules/
+
+# Runtime browser profiles/cache
+whatsapp/_IGNORE_wa1/
+whatsapp/_IGNORE_wa2/
+
+# Local runtime files
+whatsapp/nohup.out
+
+# Lockfile (exclude for this repo setup)
+whatsapp/package-lock.json
+
+# Exclude full folders for beta release
+demos/
+functions/
+skills/
+
+# websocket: keep only package.json and phloWS.js
+websocket/*
+!websocket/package.json
+!websocket/phloWS.js
+
+# whatsapp: keep only package.json and phloWA.js
+whatsapp/*
+!whatsapp/package.json
+!whatsapp/phloWA.js
+
+# OS/editor cruft
+.DS_Store
+Thumbs.db

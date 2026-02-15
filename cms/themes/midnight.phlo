@@ -1,0 +1,13 @@
+<style ns=theme.midnight>
+:root {
+	$background: #121212
+	$surface: #1e1e2f
+	$primary: #2a2a40
+	$text: #e0e0e0
+	$link: #bb86fc
+	$row-even: #1f1f2f
+	$row-odd: #2c2c3c
+	$row-hover: #bb86fc29
+	$warning: #cf6679
+}
+</style>

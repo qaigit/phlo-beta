@@ -1,0 +1,9 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: Session data object
+
+session_start()
+$this->objData = $_SESSION
+
+method __set($key, $value) => $_SESSION[$key] = $this->objData[$key] = $value
+method __unset($key) => unset($this->objData[$key], $_SESSION[$key])

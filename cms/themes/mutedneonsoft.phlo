@@ -1,0 +1,13 @@
+<style ns=theme.mutedneonsoft>
+:root {
+	$background: #0a0a15
+	$surface: #151523
+	$primary: #8affc7
+	$text: #e8fff3
+	$link: #c2ffe5
+	$row-even: #202033
+	$row-odd: #0d0d18
+	$row-hover: #8affc729
+	$warning: #ff5975
+}
+</style>

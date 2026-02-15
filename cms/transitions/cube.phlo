@@ -1,0 +1,62 @@
+<style ns=trans.cube>
+html.cube {
+	main: view-transition-name: main
+	\::view-transition-group(main): perspective: 1500px
+	\::view-transition-old(main): mix-blend-mode: normal
+	\::view-transition-new(main): mix-blend-mode: normal
+	\::view-transition-old(main): backface-visibility: hidden
+	\::view-transition-new(main): backface-visibility: hidden
+	\::view-transition-old(main): z-index: 1
+	\::view-transition-old(main): animation: 500ms ease-in-out cube-out both
+	\::view-transition-old(main): transform-origin: 100% 50%
+	\::view-transition-new(main): z-index: 2
+	\::view-transition-new(main): animation: 500ms ease-in-out cube-in both
+	\::view-transition-new(main): transform-origin: 0% 50%
+	\.back::view-transition-old(main): z-index: 2
+	\.back::view-transition-old(main): animation: 500ms ease-in-out cube-out-rev both
+	\.back::view-transition-old(main): transform-origin: 0% 50%
+	\.back::view-transition-new(main): z-index: 1
+	\.back::view-transition-new(main): animation: 500ms ease-in-out cube-in-rev both
+	\.back::view-transition-new(main): transform-origin: 100% 50%
+}
+@keyframes cube-out {
+	0% {
+		transform: rotateY(0deg) translateZ(0)
+		opacity: 1
+	}
+	100% {
+		transform: rotateY(-90deg) translateZ(0)
+		opacity: 0
+	}
+}
+@keyframes cube-in {
+	0% {
+		transform: rotateY(90deg) translateZ(0)
+		opacity: 0
+	}
+	100% {
+		transform: rotateY(0deg) translateZ(0)
+		opacity: 1
+	}
+}
+@keyframes cube-out-rev {
+	0% {
+		transform: rotateY(0deg) translateZ(0)
+		opacity: 1
+	}
+	100% {
+		transform: rotateY(90deg) translateZ(0)
+		opacity: 0
+	}
+}
+@keyframes cube-in-rev {
+	0% {
+		transform: rotateY(-90deg) translateZ(0)
+		opacity: 0
+	}
+	100% {
+		transform: rotateY(0deg) translateZ(0)
+		opacity: 1
+	}
+}
+</style>

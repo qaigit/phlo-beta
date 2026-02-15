@@ -1,0 +1,61 @@
+route both GET => (%app->active = 'dashboard') && main($this->view)
+
+view:
+<h1>%app->title Dashboard</h1>
+%CMS_dashboard_bi$this->widgets
+
+view widgets {
+	if (!$widgets = array_merge(...array_filter(loop(%app->models, fn($model) => method_exists($model, 'objWidgets') ? loop($model::objWidgets(), fn($widget) => phlo("widget_$widget->type", ...$widget)) : null)))) return
+	%app->js = '/chart.js'
+	uasort($widgets, fn($a, $b) => ($a->order ?: 9999) <=> ($b->order ?: 9999))
+	return lf.tag('div', id: 'widgets', inner: indentView(lf.loop($widgets, [$this, 'widget'], lf)).lf)
+}
+
+view widget($widget, $title):
+<figure>
+	<figcaption>$title</figcaption>
+	{{ $widget }}
+</figure>
+
+<script>
+const widget = {
+	format: (value, isPrice) => isPrice ? new Intl.NumberFormat('nl-NL', { style: 'currency', currency: 'EUR' }).format(parseFloat(value)) : (Number.isInteger(parseFloat(value)) ? new Intl.NumberFormat('nl-NL').format(parseFloat(value)) : new Intl.NumberFormat('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(parseFloat(value))),
+	init: {},
+	start: () => {
+		if (!(el = obj('#widgets > figure:not(.init)'))) return
+		const chart = el.querySelector('div')
+		if (widget.init[chart.className] ?? null){
+			echarts.getInstanceByDom(chart) && echarts.dispose(chart)
+			echarts.init(chart).setOption(widget.init[chart.className](chart.dataset))
+		}
+		el.classList.add('init')
+		delay('widgetNext', 150, () => widget.start())
+	}
+}
+onExist('#widgets', () => [app.mod.class('#widgets > figure', '-init'), widget.start()])
+on('resize', window, () => last(delay('resizeWidgets', 100, () => objects('#widgets figure > div').forEach((chart) => echarts.getInstanceByDom(chart)?.resize())), false))
+</script>
+
+<style>
+#widgets {
+	display: flex
+	flex-wrap: wrap
+	gap: 1rem
+	> figure {
+		background: $surface
+		border-radius: 9px
+		flex: 1 1 30%
+		margin: 0
+		min-width: 300px
+		opacity: .2
+		transition: 500ms ease-in
+		\.init: opacity: 1
+		figcaption {
+			font-size: .9em
+			padding: .5rem
+			text-align: center
+		}
+		> div: aspect-ratio: 2 / 1
+	}
+}
+</style>

@@ -1,0 +1,18 @@
+@ version: 1.0
+@ creator: q-ai.nl
+@ description: Generic JSON library
+
+static __handle => "JSON/$path$filename".(is_bool($assoc) ? slash.(int)$assoc : void)
+method __construct(string $filename, ?string $path = null, $assoc = null){
+	$path ??= data
+	$this->objFile = "$path$filename.json"
+	if (is_readable($this->objFile)) $this->objRead($assoc)
+}
+
+readonly objFile:string
+
+method objTouch => $this->objChanged = true
+method objRead($assoc = null) => last($data = json_read($this->objFile, $assoc), $this->objData = $assoc || is_array($data) ? $data : get_object_vars($data), $this->objChanged = false, $this)
+method objWrite($data, $flags = null) => first($written = json_write($this->objFile, $data, $flags), $written && $this->objChanged = false)
+
+method __destruct => $this->objChanged && $this->objWrite($this->objData)

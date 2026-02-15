@@ -1,0 +1,52 @@
+<style ns=trans.spiral>
+html.spiral {
+	main: view-transition-name: main
+	\::view-transition-old(main): animation: 400ms ease-in spiral-out both
+	\::view-transition-old(main): z-index: 2
+	\::view-transition-new(main): animation: 400ms ease-out spiral-in both
+	\::view-transition-new(main): z-index: 1
+	\.back::view-transition-old(main): animation: 400ms ease-in spiral-out-reverse both
+	\.back::view-transition-new(main): animation: 400ms ease-out spiral-in-reverse both
+}
+
+@keyframes spiral-out {
+	0% {
+		opacity: 1
+		transform: rotate(0deg) scale(1)
+	}
+	100% {
+		opacity: 0
+		transform: rotate(360deg) scale(0)
+	}
+}
+@keyframes spiral-in {
+	0% {
+		opacity: 0
+		transform: rotate(-360deg) scale(0)
+	}
+	100% {
+		opacity: 1
+		transform: rotate(0deg) scale(1)
+	}
+}
+@keyframes spiral-out-reverse {
+	0% {
+		opacity: 1
+		transform: rotate(0deg) scale(1)
+	}
+	100% {
+		opacity: 0
+		transform: rotate(-360deg) scale(0)
+	}
+}
+@keyframes spiral-in-reverse {
+	0% {
+		opacity: 0
+		transform: rotate(360deg) scale(0)
+	}
+	100% {
+		opacity: 1
+		transform: rotate(0deg) scale(1)
+	}
+}
+</style>

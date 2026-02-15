@@ -1,0 +1,13 @@
+<style ns=theme.sterilepro>
+:root {
+	$background: #f7fafc
+	$surface: #ffffff
+	$primary: #00a7b8
+	$text: #1a202c
+	$link: #0aa
+	$row-even: #edf2f7
+	$row-odd: #ffffff
+	$row-hover: #00a7b829
+	$warning: #e53e3e
+}
+</style>

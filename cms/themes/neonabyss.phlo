@@ -1,0 +1,13 @@
+<style ns=theme.neonabyss>
+:root {
+	$background: #000005
+	$surface: #050517
+	$primary: #00eaff
+	$text: #e0faff
+	$link: #7df9ff
+	$row-even: #0a0a22
+	$row-odd: #040414
+	$row-hover: #00eaff29
+	$warning: #ff3c6e
+}
+</style>

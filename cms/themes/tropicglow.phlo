@@ -1,0 +1,13 @@
+<style ns=theme.tropicglow>
+:root {
+	$background: linear-gradient(to bottom, #2E4272 0%, #3C79A4 25%, #FF7660 55%, #FBD46D 80%, #5EBF9D 100%)
+	$surface: #264653
+	$primary: #FF7660
+	$text: #FFFDF9
+	$link: #5EBF9D
+	$row-even: #30586A
+	$row-odd: #264653
+	$row-hover: #FF766029
+	$warning: #FF4444
+}
+</style>

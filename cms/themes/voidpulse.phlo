@@ -1,0 +1,13 @@
+<style ns=theme.voidpulse>
+:root {
+	$background: linear-gradient(to bottom, #020617, #111827, #020617)
+	$surface: #05081a
+	$primary: #22c55e
+	$text: #e5f8f0
+	$link: #4ade80
+	$row-even: #070b1f
+	$row-odd: #040614
+	$row-hover: #22c55e29
+	$warning: #fb374a
+}
+</style>

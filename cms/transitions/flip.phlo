@@ -1,0 +1,57 @@
+<style ns=trans.flip>
+html.flip {
+	main: view-transition-name: main
+	\::view-transition-old(main): animation: 250ms ease-in-out flip-out both
+	\::view-transition-new(main): animation: 250ms ease-in-out flip-in both
+	\.back::view-transition-old(main): animation: 250ms ease-in-out flip-out-reverse both
+	\.back::view-transition-new(main): animation: 250ms ease-in-out flip-in-reverse both
+}
+@keyframes flip-out {
+	0% {
+		transform: perspective(1600px) rotateY(0deg)
+		opacity: 1
+	}
+	49.9%: opacity: 1
+	50%: opacity: 0
+	100% {
+		transform: perspective(1600px) rotateY(180deg)
+		opacity: 0
+	}
+}
+@keyframes flip-in {
+	0% {
+		transform: perspective(1600px) rotateY(-180deg)
+		opacity: 0
+	}
+	50%: opacity: 0
+	50.1%: opacity: 1
+	100% {
+		transform: perspective(1600px) rotateY(0deg)
+		opacity: 1
+	}
+}
+@keyframes flip-out-reverse {
+	0% {
+		transform: perspective(1600px) rotateY(0deg)
+		opacity: 1
+	}
+	49.9%: opacity: 1
+	50%: opacity: 0
+	100% {
+		transform: perspective(1600px) rotateY(-180deg)
+		opacity: 0
+	}
+}
+@keyframes flip-in-reverse {
+	0% {
+		transform: perspective(1600px) rotateY(180deg)
+		opacity: 0
+	}
+	50%: opacity: 0
+	50.1%: opacity: 1
+	100% {
+		transform: perspective(1600px) rotateY(0deg)
+		opacity: 1
+	}
+}
+</style>

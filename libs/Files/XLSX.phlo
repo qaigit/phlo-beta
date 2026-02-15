@@ -1,0 +1,65 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: XLSX reader library
+
+method __construct(string $file){
+	$sheets = []
+	$shared = []
+	$sheetNames = []
+	$zip = new ZipArchive()
+	if ($zip->open($file) !== true) dx('error opening zip', $file)
+	for ($i = 0; $i < $zip->numFiles; $i++){
+		$name = $zip->getNameIndex($i)
+		if ($name === false) continue
+		if (dirname($name) === 'xl/worksheets') $sheets[filter_var($name, FILTER_SANITIZE_NUMBER_INT)] = $zip->getFromIndex($i)
+		elseif ($name === 'xl/sharedStrings.xml'){
+			$xml = $zip->getFromIndex($i)
+			if (!preg_match_all('/<t[^>]*>(.*?)<\/t>/s', $xml, $m)) dx('error reading shared lib')
+			$shared = array_map(fn($t) => html_entity_decode($t, ENT_QUOTES | ENT_XML1, 'UTF-8'), $m[1])
+		}
+		elseif ($name === 'xl/workbook.xml'){
+			$xml = $zip->getFromIndex($i)
+			if (!preg_match_all('/<sheet[^>]*name="([^"]+)"[^>]*sheetId="([0-9]+)"/', $xml, $m)) dx('error reading workbook')
+			$sheetNames = $m[1]
+		}
+	}
+	$zip->close()
+	$toIndex = fn($letters) => array_reduce(str_split(strtoupper($letters)), fn($n, $c) => $n * 26 + ord($c) - 64, 0) - 1
+	$isShared = fn($attrs) => preg_match('/\bt="s"\b/', $attrs) === 1
+	foreach ($sheets AS $sheetID => $sheet){
+		$name = $sheetNames[$sheetID - 1] ?? 'Sheet '.$sheetID
+		if (!preg_match('/<row[^>]*>(.+)<\/row>/s', $sheet, $m)) dx('error parsing sheet')
+		$rowsXml = preg_split('/<\/row><row[^>]*>/', $m[1]) ?: []
+		$headerMap = []
+		$isHeader = true
+		foreach ($rowsXml AS $rowXml){
+			$rowXml = preg_replace('/<c([^>]*)\/>/', '<c$1></c>', $rowXml)
+			if (!preg_match_all('/<c r="([A-Z]+)[0-9]+"([^>]*)>(?:<f\b[^>]*\/?>)?(?:(?:<v>([^<]*)<\/v>)|(?:<is>.*?<t[^>]*>(.*?)<\/t>.*?<\/is>))?<\/c>/s', $rowXml, $mm)) dx('error parsing row', $rowXml)
+			if ($isHeader){
+				foreach (array_keys($mm[0]) AS $i){
+					$col = $toIndex($mm[1][$i])
+					$attrs = $mm[2][$i]
+					$valV = $mm[3][$i] ?? null
+					$valIS = $mm[4][$i] ?? null
+					$val = $valV !== null && $valV !== '' ? $valV : ($valIS !== null && $valIS !== '' ? html_entity_decode($valIS, ENT_QUOTES | ENT_XML1, 'UTF-8') : null)
+					$txt = $isShared($attrs) ? ($shared[$val] ?? null) : $val
+					$headerMap[$col] = $txt !== null && $txt !== '' ? $txt : 'col'.$col
+				}
+				$isHeader = false
+			}
+			else {
+				$rowArr = []
+				foreach (array_keys($mm[0]) AS $i){
+					$col = $toIndex($mm[1][$i])
+					$attrs = $mm[2][$i]
+					$valV = $mm[3][$i] ?? null
+					$valIS = $mm[4][$i] ?? null
+					$val = $valV !== null && $valV !== '' ? $valV : ($valIS !== null && $valIS !== '' ? html_entity_decode($valIS, ENT_QUOTES | ENT_XML1, 'UTF-8') : null)
+					$key = $headerMap[$col] ?? 'col'.$col
+					$rowArr[$key] = $isShared($attrs) ? ($shared[$val] ?? null) : $val
+				}
+				$this->objData[$name][] = $rowArr
+			}
+		}
+	}
+}

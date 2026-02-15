@@ -1,0 +1,13 @@
+<style ns=theme.mossvoid>
+:root {
+	$background: #020d08
+	$surface: #061c12
+	$primary: #4ade80
+	$text: #e7fee8
+	$link: #86ffc0
+	$row-even: #0a291a
+	$row-odd: #03110a
+	$row-hover: #4ade8029
+	$warning: #ff596b
+}
+</style>

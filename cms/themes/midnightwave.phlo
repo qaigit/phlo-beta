@@ -1,0 +1,13 @@
+<style ns=theme.midnightwave>
+:root {
+	$background: linear-gradient(to bottom, #00101a, #002f4d, #004f7a)
+	$surface: #00253a
+	$primary: #00cfff
+	$text: #dffaff
+	$link: #7befff
+	$row-even: #003a57
+	$row-odd: #001621
+	$row-hover: #00cfff29
+	$warning: #ff4757
+}
+</style>

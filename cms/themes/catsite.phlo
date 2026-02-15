@@ -1,0 +1,13 @@
+<style ns=theme.catsite>
+:root {
+	$background: linear-gradient(to bottom, #b79eff 0%, #A48FE2 40%, #F5E5FF 100%)
+	$surface: #F9F6FF
+	$primary: #FDBA21
+	$text: #2E2A40
+	$link: #5F4B8B
+	$row-even: #F3ECFF
+	$row-odd: #EDE3FF
+	$row-hover: #FDBA2129
+	$warning: #cc52a8
+}
+</style>

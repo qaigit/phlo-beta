@@ -1,0 +1,64 @@
+@ type: abstract class
+
+function main(string $main, $title = null, ...$args){
+	$layout = phlo('CMS_layout'.($layout = %app->layout ? "_$layout" : void))
+	$main = tag('main', indentView(lf.trim($main).lf))
+	$args['uri'] ??= req
+	if (async) view(...$args, title: $title, settings: ['scroll' => 'main'], outer: ['nav' => $layout->nav], main: $main, trans: %app->trans ?: 'page')
+	else view($layout.lf.$main, $title, ...$args, settings: ['scroll' => 'main'])
+}
+function CMS(string $model, $mode, ...$args) => phlo('CMS_'.$mode.(($type = $model::${$mode.'View'} ?? %app->$mode) ? "_$type" : void), $model, ...$args, type: $type ?: 'default', isMain: first(!%app->mainCMS, %app->mainCMS = true))
+
+route GET $section:files,images,thumbs $token.20 $filename => output(file: ($exists = file_exists($file = constant($section).substr($token, 0, 2).slash.substr($token, 2).dot.pathinfo($filename, PATHINFO_EXTENSION))) ? $file : www.'notFound.webp', attachment: $exists ? null : false)
+
+static _uriLists => create(%app->models, fn($model) => $model::$uriList ?? $model::$table)
+static uriListFind($uri) => static::uriLists()[$uri] ?? false
+
+static _uriRecords => create(%app->models, fn($model) => $model::$uriRecord ?? $model)
+static uriRecordFind($uri) => static::uriRecords()[$uri] ?? false
+
+method __construct(public string $model, ...$args) => $args && $this->objImport(...$args)
+
+prop fields => array_filter($this->model::fields(), fn($field) => $field->{$this->mode} !== false && $field->name !== $this->foreignKey)
+prop record => $this->model::record(id: $this->id)
+
+prop DOMtitle => $this->hideBody || ($this->parent && !$this->parent->childField) ? tag('a', $this->title, href: slash.$this->uri, class: 'async') : $this->title
+prop titleList => $this->model::$titleList ?? ucfirst($this->model::$table)
+prop titleRecord => $this->model::$titleRecord ?? ucfirst($this->model)
+
+prop uriList => $this->model::$uriList ?? $this->model::$table
+prop uriRecord => $this->model::$uriRecord ?? $this->model
+
+prop section => "class=\"$this->selector\" data-model=\"$this->model\" data-list=\"$this->uriList\" data-record=\"".($this->relationshipName ?? $this->uriRecord)."\"".($this->parent ? ' data-parent="'.$this->parent->uriRecord.slash.$this->parent->id.'"' : void)
+prop sectionSel => 'section[data-model="'.$this->model.'"][data-record="'.($this->relationshipName ?? $this->uriRecord).'"]'.($this->parent ? '[data-parent="'.$this->parent->uriRecord.'/'.$this->parent->id.'"]' : '')
+prop selector => implode(space, array_filter([$this->isMain ? 'main' : null, $this->mode, $this->type]))
+prop titleTag => $this->isMain ? 'h1' : 'h2'
+
+prop uri($useRecord = false){
+	$parentPath = $this->parent ? $this->parent->uriRecord.'/'.$this->parent->id.'/' : ''
+	$selfPath = $this->relationshipName ?? ($this->mode === 'list' && !$useRecord ? $this->uriList : $this->uriRecord)
+	$idPath = ($this->mode === 'record' || $this->mode === 'change') && $this->id ? '/'.$this->id : ''
+	return $parentPath.$selfPath.$idPath
+}
+
+method event => $this->record->hasMethod($method = 'view'.ucfirst($this->mode)) && is_string($output = $this->record->$method($this)) ? "$output\n" : void
+
+method field($field, $record, $tag){
+	$mode = $this->mode
+	$views = ['list' => 'label', 'record' => 'label', 'create' => 'input', 'change' => 'input']
+	$view = $field->$mode === true || $field->$mode === null ? $views[$mode] : $field->$mode; $view === 'list' && $mode === 'record' && ($view = 'count')
+	$classes = [$view, $type = substr($field::class, 6)]
+	$body = $field->$view($record, $this)
+	$field->prefix && $body = $field->prefix.$body
+	$field->suffix && $body .= $field->suffix
+	$field->required && $mode !== 'list' && $view === 'input' && $body .= ' *'
+	if (!str_contains($body, '<a') && !str_contains($body, '<input') && !str_contains($body, '<select') && !str_contains($body, '<textarea')) $classes[] = 'link'
+	$class = ' class="'.implode(space, $classes).'"'
+	return "<$tag$class>$body</$tag>"
+}
+
+view:
+$this->event<section $this->section>
+	{{ $this->header }}
+	{{ $this->body }}
+</section>

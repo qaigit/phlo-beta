@@ -1,0 +1,42 @@
+@ extends: CMS
+
+route both GET change $record $id $debug? {
+	if (!$model = CMS::uriRecordFind($record)) return false
+	%app->active = $model
+	$CMS = CMS($model, 'change', id: $id)
+	$debug && dx($model, $CMS)
+	main($CMS, $CMS->title)
+}
+
+route both GET change $record $id $fieldName $childId $debug? {
+	if (!($model = CMS::uriRecordFind($record)) || !($field = $model::fields()[$fieldName] ?? null) || !is_a($field, 'field_child')) return false
+	%app->active = $model
+	$CMS = CMS($model, 'record', id: $id, childField: $fieldName, childId: $childId, childMode: 'change', hideBody: true)
+	$debug && dx($model, $CMS, $field, $childId)
+	main($CMS, $CMS->title)
+}
+
+prop mode = 'change'
+prop title => 'Bewerken: '.$this->titleRecord.space.$this->record
+
+prop actions {
+	$actions = []
+	$actions[] = button('Opslaan', form: 'form', class: 'primary')
+	return implode(lf, $actions)
+}
+
+view header:
+<header>
+	<$this->titleTag>$this->DOMtitle</$this->titleTag>
+	{{ $this->actions }}
+</header>
+
+view body:
+<form#form class="$this->mode async" action="/api/$this->uri" method=put novalidate>
+	<foreach $this->fields AS $column => $field>
+		<div.field>
+			<label>{( $field->title ?? ucfirst($column) )}</label>
+			{{ $this->field($field, $this->record, 'div') }}
+		</div>
+	</foreach>
+</form>

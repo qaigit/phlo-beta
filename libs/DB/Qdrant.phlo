@@ -1,0 +1,14 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: Embeddings library with Qdrant
+
+method get(string $input) => apcu('embedding/'.token(input: $input), fn($input) => %OpenAI->embedding($input), 86400 * 28)
+
+method collections => array_column($this->request('collections')->result->collections, 'name')
+method create($collection, $size = 1536, $distance = 'Cosine') => $this->request("collections/$collection", PUT: arr(vectors: arr(size: $size, distance: $distance)))->status === 'ok'
+method upsert($collection, $id, $input, ...$payload) => $this->request("collections/$collection/points", PUT: arr(points: [arr(id: $id, vector: $this->get($input), payload: $payload ?: null)]))->result->operation_id
+method delete($collection, ...$ids) => $this->request("collections/$collection/points/delete", POST: arr(points: $ids))->result
+method search($collection, $input = null, $top = 100) => create($this->request("collections/$collection/points/search", POST: arr(vector: is_null($input) ? array_fill(0, 1536, 0) : $this->get($input), top: $top, with_payload: true))->result, fn($record) => $record->id, fn($record) => last($record = array_merge(get_object_vars($record), get_object_vars($record->payload)), obj(...array_filter($record, fn($key) => $key !== 'payload', ARRAY_FILTER_USE_KEY))))
+method drop($collection) => $this->request("collections/$collection", DELETE: true)->result
+
+method request($uri, ...$data) => json_decode(HTTP(%creds->qdrant->server.$uri, %creds->qdrant->key ? ['api-key: '.%creds->qdrant->key] : [], true, ...$data))

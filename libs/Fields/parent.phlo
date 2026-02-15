@@ -1,0 +1,12 @@
+@ extends:     field
+@ class:       field_parent
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: CMS model parent relation field
+
+method label($record, $CMS) => is_a($obj = $record->{$this->name}, 'model') ? $this->link($obj) : dash
+method input($record, $CMS) => select(name: $this->name, inner: loop($this->options, fn($parent) => '<option'.($parent->id === $record->{$this->name}?->id ? ' selected' : void).' value="'.$parent->id.'">'.$parent, void))
+method link($record, $content = null) => tag('a', href: slash.($record::$uriRecord ?? $record::class).slash.$record->id, class: 'async', inner: $content ?? $record)
+prop options => $this->obj::records()
+
+method sql => "`$this->name` varchar(10)"

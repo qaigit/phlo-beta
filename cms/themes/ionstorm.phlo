@@ -1,0 +1,13 @@
+<style ns=theme.ionstorm>
+:root {
+	$background: linear-gradient(to bottom, #020d1f, #081f3b, #093d6e)
+	$surface: #0a1628
+	$primary: #4fa3ff
+	$text: #e0f0ff
+	$link: #8bc7ff
+	$row-even: #132544
+	$row-odd: #07101f
+	$row-hover: #4fa3ff29
+	$warning: #ff5174
+}
+</style>

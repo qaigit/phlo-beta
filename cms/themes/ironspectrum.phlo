@@ -1,0 +1,13 @@
+<style ns=theme.ironspectrum>
+:root {
+	$background: linear-gradient(to bottom, #1a1c21, #2b2e36, #3d414b)
+	$surface: #2a2d35
+	$primary: #9aa3b8
+	$text: #eff3ff
+	$link: #b7c2d9
+	$row-even: #343842
+	$row-odd: #21242b
+	$row-hover: #9aa3b829
+	$warning: #ff5360
+}
+</style>

@@ -1,0 +1,49 @@
+<style ns=trans.slide>
+html.slide {
+	main: view-transition-name: main
+	\::view-transition-old(main): animation: 250ms ease-in-out fade-slide-out both
+	\::view-transition-new(main): animation: 250ms ease-in-out fade-slide-in both
+	\.back::view-transition-old(main): animation: 250ms ease-in-out fade-slide-out-reverse both
+	\.back::view-transition-new(main): animation: 250ms ease-in-out fade-slide-in-reverse both
+}
+@keyframes fade-slide-out {
+	0% {
+		opacity: 1
+		transform: translateX(0)
+	}
+	100% {
+		opacity: 0
+		transform: translateX(20px)
+	}
+}
+@keyframes fade-slide-in {
+	0% {
+		opacity: 0
+		transform: translateX(-20px)
+	}
+	100% {
+		opacity: 1
+		transform: translateX(0)
+	}
+}
+@keyframes fade-slide-out-reverse {
+	0% {
+		opacity: 1
+		transform: translateX(0)
+	}
+	100% {
+		opacity: 0
+		transform: translateX(-20px)
+	}
+}
+@keyframes fade-slide-in-reverse {
+	0% {
+		opacity: 0
+		transform: translateX(20px)
+	}
+	100% {
+		opacity: 1
+		transform: translateX(0)
+	}
+}
+</style>

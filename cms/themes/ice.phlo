@@ -1,0 +1,13 @@
+<style ns=theme.ice>
+:root {
+	$background: #e0f7fa
+	$surface: #e1f5fe
+	$primary: #81d4fa
+	$text: #01579b
+	$link: #0288d1
+	$row-even: #b3e5fc
+	$row-odd: #e0f7fa
+	$row-hover: #81d4fa29
+	$warning: #b71c1c
+}
+</style>

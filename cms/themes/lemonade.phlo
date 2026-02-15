@@ -1,0 +1,13 @@
+<style ns=theme.lemonade>
+:root {
+	$background: #fffff0
+	$surface: #fffacd
+	$primary: #fdd835
+	$text: #795548
+	$link: #fbc02d
+	$row-even: #fff9c4
+	$row-odd: #fffde7
+	$row-hover: #fdd83529
+	$warning: #e53935
+}
+</style>

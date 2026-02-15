@@ -1,0 +1,30 @@
+@ version: 1.0
+@ creator: q-ai.nl
+@ description: Generic INI library
+
+prop objFile:string
+
+static __handle => "INI/$path$filename".(!$parse ? '/0' : void)
+method __construct(string $filename, ?string $path = null, bool $parse = true){
+	$path ??= data
+	$this->objFile = $path.strtr($filename, [slash => dot]).'.ini'
+	if (is_readable($this->objFile)) $this->objRead($parse)
+}
+
+method objRead($parse = true) => last($this->objData = parse_ini_file($this->objFile, true, $parse ? INI_SCANNER_TYPED : INI_SCANNER_RAW), $this->objChanged = false, $this)
+method objFormat($data) => loop($data, fn($value, $key) => $key.' = '.dq.strtr($value, [dq => bs.dq, lf => '\n']).dq, lf).lf
+
+method objWrite {
+	$fp = fopen($this->objFile, 'c+')
+	if (!$fp || !flock($fp, LOCK_EX)) return false
+	$fresh = parse_ini_file($this->objFile, true, INI_SCANNER_TYPED) ?: []
+	$merged = array_merge($fresh, $this->objData)
+	ftruncate($fp, 0)
+	rewind($fp)
+	fwrite($fp, $this->objFormat($merged))
+	fflush($fp)
+	flock($fp, LOCK_UN)
+	fclose($fp)
+}
+
+method __destruct => $this->objChanged && $this->objWrite()

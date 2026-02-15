@@ -1,0 +1,13 @@
+<style ns=theme.qdevcosmic>
+:root {
+	$background: linear-gradient(170deg, #5e48a9 0%, #08060c 35%, #7c0000 60%, #37538e 100%)
+	$surface: #151528
+	$primary: #ff1a3d
+	$text: #e8e9ff
+	$link: #ff4d79
+	$row-even: #181830
+	$row-odd: #101020
+	$row-hover: #ff1a3d29
+	$warning: #ff0033
+}
+</style>

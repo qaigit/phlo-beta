@@ -1,0 +1,13 @@
+<style ns=theme.softflare>
+:root {
+	$background: #111018
+	$surface: #1f1e2a
+	$primary: #ffd6a5
+	$text: #fff1e8
+	$link: #ffe2c6
+	$row-even: #2b2a38
+	$row-odd: #16151e
+	$row-hover: #ffd6a529
+	$warning: #ff4b54
+}
+</style>

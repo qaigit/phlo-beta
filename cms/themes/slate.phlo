@@ -1,0 +1,13 @@
+<style ns=theme.slate>
+:root {
+	$background: #f8fafc
+	$surface: #e2e8f0
+	$primary: #64748b
+	$text: #1e293b
+	$link: #0ea5e9
+	$row-even: #e2e8f0
+	$row-odd: #f1f5f9
+	$row-hover: #0ea5e929
+	$warning: #dc2626
+}
+</style>

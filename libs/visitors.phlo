@@ -1,0 +1,46 @@
+@ version:     1.0
+@ creator:     q-ai.nl
+@ description: Visitor tracking via heartbeat
+
+@ extends:  model
+@ requires: @payload @model
+
+static table = 'visitors'
+static columns = 'id,token,host,page,lang,IP,browser,os,device,requests,state,width,height,referrer,created,changed'
+
+static history => static::records(columns: 'FROM_UNIXTIME(changed, "%Y-%m-%d") AS date,COUNT(DISTINCT token) AS visitors,COUNT(id) AS visits', group: 'date', order: 'date DESC')
+static online => static::item(columns: 'COUNT(DISTINCT token)', where: 'changed >= (UNIX_TIMESTAMP() - 9)')
+static lastHour => static::item(columns: 'COUNT(DISTINCT token)', where: 'changed >= (UNIX_TIMESTAMP() - 3600)')
+
+route PUT heartbeat @n,v,l,u,w,h,a,p,r {
+	$id = token(20, (strlen(%payload->n) === 8 ? %payload->n : date('Ymd')).space.%app->token.space.%useragent->source)
+	$data = arr (
+		token: %app->token ?? error('No app token available'),
+		host: $_SERVER['HTTP_HOST'],
+		page: %payload->u,
+		lang: strlen(%payload->l) === 2 ? %payload->l : %app->lang ?? 'en',
+		IP: $_SERVER['REMOTE_ADDR'],
+		browser: %useragent->full.(%payload->a ? ' App' : void),
+		os: %useragent->osFull,
+		device: %useragent->device,
+		requests: %payload->p,
+		state: %payload->v,
+		width: %payload->w,
+		height: %payload->h,
+		changed: time(),
+	)
+	$host = apcu_fetch('watched')
+	$record = static::record(id: $id, columns: 'id,page,referrer')
+	if (($referrer = %payload->r) && !$record?->referrer && !strpos($referrer, host)) $data['referrer'] = $referrer
+	if ($record) [static::change('id=?', $id, ...$data), $host && $record->page !== %payload->u && wsCast(wsHost: $host, toast: 'Request: '.$_SERVER['REMOTE_ADDR'].' - '.$_SERVER['HTTP_HOST'].slash.%payload->u)]
+	else static::create(...$data, id: $id, created: time()) && $host && wsCast(wsHost: $host, toast: 'Visitor: '.$_SERVER['REMOTE_ADDR'].' - '.$_SERVER['HTTP_HOST'].slash.%payload->u)
+}
+
+<script>
+let cururi = app.uri
+let heartbeatTimeout
+const heartbeat = () => delay('heartbeat', 333, () => [clearTimeout(heartbeatTimeout), window.name ||= phlo.token(8), fetch('/heartbeat', {method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({n: window.name, v: app.state, l: obj('html').lang ?? 'en', u: app.uri, w: innerWidth, h: innerHeight, a: app.mode, p: phlo.state.index, r: (r = document.referrer) ? (r === `${location.origin}/` ? null : r) : null})}), heartbeatTimeout = setTimeout(heartbeat, 20000)])
+[document.addEventListener('visibilitychange', heartbeat), ['focus', 'blur', 'resize'].forEach(e => addEventListener(e, heartbeat))]
+app.updates.push(() => cururi !== app.uri && (heartbeat(), cururi = app.uri))
+heartbeat()
+</script>
